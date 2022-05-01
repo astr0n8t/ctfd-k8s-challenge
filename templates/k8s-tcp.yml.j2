@@ -43,7 +43,7 @@ metadata:
   namespace: {{ istio_namespace }}
 spec:
   selector:
-    istio: {{ ingress_gateway_name }}
+    istio: {{ istio_ingress_name }}
   servers:
   - port:
       number: {{ external_tcp_port }}

@@ -43,7 +43,7 @@ metadata:
   namespace: {{ challenge_namespace }}
 spec:
   hosts:
-  - "{{ deployment_name }}.{{ tcp_domain_name }}"
+  - "{{ deployment_name }}.{{ https_domain_name }}"
   gateways:
   - {{ istio_namespace }}/k8s-https-challenge-gateway
   http:
