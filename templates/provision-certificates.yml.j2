@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ tcp_cert_name }}
+  namespace: {{ istio_namespace }}
+spec:
+  secretName: {{ tcp_cert_name }}
+  issuerRef:
+    # The issuer created previously
+    name: {{ certificate_issuer_name }}
+  dnsNames:
+  - "*.{{ tcp_domain_name }}"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ https_cert_name }}
+  namespace: {{ istio_namespace }}
+spec:
+  secretName: {{ https_cert_name }}
+  issuerRef:
+    # The issuer created previously
+    name: {{ certificate_issuer_name }}
+  dnsNames:
+  - "*.{{ https_domain_name }}"

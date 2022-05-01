@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ deployment_name }}
+  namespace: {{ challenge_namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ deployment_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ deployment_name }}
+    spec:
+      containers:
+      - name: {{ deployment_name }}
+        image: {{ container_name }}
+        imagePullPolicy: Always
+        ports:
+        - name: {{ deployment_name }}-{{ challenge_port }}
+          containerPort: {{ challenge_port }}
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ deployment_name }}-service
+  namespace: {{ challenge_namespace }}
+spec:
+  selector:
+    app: {{ deployment_name }}
+  ports:
+    - name: {{ deployment_name }}-{{ challenge_port }}
+      protocol: TCP
+      port: {{ challenge_port }}
+      targetPort: {{ challenge_port }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ deployment_name }}-vs
+  namespace: {{ challenge_namespace }}
+spec:
+  hosts:
+  - "{{ deployment_name }}.{{ tcp_domain_name }}"
+  gateways:
+  - {{ istio_namespace }}/k8s-https-challenge-gateway
+  http:
+  - route:
+    - destination:
+        host: {{ deployment_name }}-service
+        port:
+          number: {{ challenge_port }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ deployment_name }}
+  namespace: {{ challenge_namespace }}
+spec:
+  host: {{ deployment_name }}-service
+  trafficPolicy:
+    tls:
+      mode: DISABLE

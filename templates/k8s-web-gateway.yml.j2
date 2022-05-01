@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: k8s-https-challenge-gateway
+  namespace: {{ istio_namespace }}
+spec:
+  selector:
+    istio: {{ ingress_gateway_name }}
+  servers:
+  - port:
+      number: {{ external_https_port }}
+      name: k8s-https-challenge
+      protocol: https     
+    tls:
+      mode: SIMPLE
+      credentialName: {{ https_cert_name }}
+    hosts:
+    - "*.{{ https_domain_name }}"
