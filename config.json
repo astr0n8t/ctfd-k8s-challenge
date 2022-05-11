@@ -1,0 +1,4 @@
+{
+	"name": "Kubernetes Config",
+	"route": "/admin/k8s_config"
+}
