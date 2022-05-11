@@ -62,11 +62,12 @@ class k8sChallengeType(BaseChallenge):
 		:param challenge:
 		:return: Challenge object, data dictionary to be returned to the user
 		"""
-        challenge = k8Challenge.query.filter_by(id=challenge.id).first()
+        challenge = k8sChallenge.query.filter_by(id=challenge.id).first()
         data = {
             'id': challenge.id,
             'name': challenge.name,
             'value': challenge.value,
+            'image': challenge.image,
             'description': challenge.description,
             'category': challenge.category,
             'state': challenge.state,
@@ -160,4 +161,17 @@ class k8sChallengeType(BaseChallenge):
 class k8sChallenge(Challenges):
     __mapper_args__ = {'polymorphic_identity': 'k8s-challenge'}
     id = db.Column(None, db.ForeignKey('challenges.id'), primary_key=True)
+    image = db.Column(db.String(128), index=True)  
 
+class k8sChallengeTracker(db.Model):
+    """
+	K8s Container Tracker. This model stores the users/teams active containers.
+	"""
+    id = db.Column(db.Integer, primary_key=True)
+    team_id = db.Column("team_id", db.String(64), index=True)
+    user_id = db.Column("user_id", db.String(64), index=True)
+    image = db.Column("image", db.String(128), index=True)
+    timestamp = db.Column("timestamp", db.Integer, index=True)
+    revert_time = db.Column("revert_time", db.Integer, index=True)
+    instance_id = db.Column("instance_id", db.String(128), index=True)
+    port = db.Column("port", db.Integer, index=True)
