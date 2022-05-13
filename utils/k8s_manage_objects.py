@@ -4,7 +4,7 @@ import yaml
 from jinja2 import Template
 
 def get_template(template_id):
-    template_types = ['k8s-tcp', 'k8s-web', 'k8s-random-port', 'registry']
+    template_types = ['k8s-tcp', 'k8s-web', 'k8s-random-port', 'registry', 'certificates', 'web-gateway']
     
     template_path = 'CTFd/plugins/ctfd-k8s-challenge/templates/' + template_types[template_id] + '.yml.j2'
 
