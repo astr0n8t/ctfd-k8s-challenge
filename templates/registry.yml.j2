@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  namespace: {{ registry_namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - name: registry
+          containerPort: 5000 
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: challenge-registry-service
+  namespace: {{ registry_namespace }}
+spec:
+  selector:
+    app: registry
+  ports:
+    - name: registry
+      protocol: TCP
+      port: 80
+      targetPort: 5000

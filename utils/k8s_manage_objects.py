@@ -1,12 +1,12 @@
 import kubernetes as k8s
-import k8s_delete_from_yaml
+from .k8s_delete_from_yaml import delete_from_yaml
 import yaml
 from jinja2 import Template
 
-def get_template(chal_type):
-    challenge_types = ['k8s-tcp', 'k8s-web', 'k8s-random-port']
+def get_template(template_id):
+    template_types = ['k8s-tcp', 'k8s-web', 'k8s-random-port', 'registry']
     
-    template_path = 'templates/' + challenge_types[chal_type] + '.yml.j2'
+    template_path = 'CTFd/plugins/ctfd-k8s-challenge/templates/' + template_types[template_id] + '.yml.j2'
 
     template = ''
 
@@ -27,7 +27,9 @@ def deploy_object(k8s_client, template, template_variables):
     try:
         k8s.utils.create_from_yaml(k8s_client, yaml_objects=dep)
     except Exception as e:
-        result = False
+        if not '"reason":"AlreadyExists"' in str(e):
+            result = False
+            print(e)
 
     return result
 
@@ -41,7 +43,7 @@ def destroy_object(k8s_client, template, template_variables):
     result = True
 
     try:
-        k8s_delete_from_yaml.delete_from_yaml(k8s_client, yaml_objects=dep)
+        delete_from_yaml(k8s_client, yaml_objects=dep)
     except Exception as e:
         result = False
 

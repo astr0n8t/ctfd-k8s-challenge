@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Job
+metadata:
+  name: builder-{{ container_name }}
+  namespace: {{ registry_namespace }}
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+        - "--context=git://{{ challenge_repo }}"
+        - "--destination=challenge-registry-service.{{ registry_namespace }}./{{ challenge_name }}:latest"
+        - "--insecure"
+      restartPolicy: Never

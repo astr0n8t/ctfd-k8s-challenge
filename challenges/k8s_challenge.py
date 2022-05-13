@@ -96,27 +96,6 @@ class k8sChallengeType(BaseChallenge):
         return challenge
 
     @staticmethod
-    def attempt(challenge, request):
-        """
-		This method is used to check whether a given input is right or wrong. It does not make any changes and should
-		return a boolean for correctness and a string to be shown to the user. It is also in charge of parsing the
-		user's input from the request itself.
-		:param challenge: The Challenge object from the database
-		:param request: The request the user submitted
-		:return: (boolean, string)
-		"""
-
-        data = request.form or request.get_json()
-        print(request.get_json())
-        print(data)
-        submission = data["submission"].strip()
-        flags = Flags.query.filter_by(challenge_id=challenge.id).all()
-        for flag in flags:
-            if get_flag_class(flag.type).compare(flag, submission):
-                return True, "Correct"
-        return False, "Incorrect"
-
-    @staticmethod
     def solve(user, team, challenge, request):
         """
 		This method is used to insert Solves into the database in order to mark a challenge as solved.
@@ -137,41 +116,9 @@ class k8sChallengeType(BaseChallenge):
         db.session.add(solve)
         db.session.commit()
 
-    @staticmethod
-    def fail(user, team, challenge, request):
-        """
-		This method is used to insert Fails into the database in order to mark an answer incorrect.
-		:param team: The Team object from the database
-		:param chal: The Challenge object from the database
-		:param request: The request the user submitted
-		:return:
-		"""
-        data = request.form or request.get_json()
-        submission = data["submission"].strip()
-        wrong = Fails(
-            user_id=user.id,
-            team_id=team.id if team else None,
-            challenge_id=challenge.id,
-            ip=get_ip(request),
-            provided=submission,
-        )
-        db.session.add(wrong)
-        db.session.commit()
-
 class k8sChallenge(Challenges):
     __mapper_args__ = {'polymorphic_identity': 'k8s-challenge'}
-    id = db.Column(None, db.ForeignKey('challenges.id'), primary_key=True)
-    image = db.Column(db.String(128), index=True)  
+    id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), primary_key=True)
+    image = db.Column(db.String(128), index=False)  
+    repository = db.Column(db.String(128), index=False)  
 
-class k8sChallengeTracker(db.Model):
-    """
-	K8s Container Tracker. This model stores the users/teams active containers.
-	"""
-    id = db.Column(db.Integer, primary_key=True)
-    team_id = db.Column("team_id", db.String(64), index=True)
-    user_id = db.Column("user_id", db.String(64), index=True)
-    image = db.Column("image", db.String(128), index=True)
-    timestamp = db.Column("timestamp", db.Integer, index=True)
-    revert_time = db.Column("revert_time", db.Integer, index=True)
-    instance_id = db.Column("instance_id", db.String(128), index=True)
-    port = db.Column("port", db.Integer, index=True)
