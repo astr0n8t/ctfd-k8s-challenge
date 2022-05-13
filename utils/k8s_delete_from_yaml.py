@@ -63,16 +63,15 @@ def delete_from_yaml(k8s_client, yaml_file=None, yaml_objects=None, verbose=Fals
     else:
         raise ValueError(
             'One of `yaml_file` or `yaml_objects` arguments must be provided')
-
-    failures = []
     for yml_document in yml_document_all:
         try:
             delete_from_dict(k8s_client, yml_document, verbose,
                                 namespace=namespace, **kwargs)
         except FailToDeleteError as failure:
-            failures.extend(failure.api_exceptions)
-    if failures:
-        raise FailToDeleteError(failures)
+            for e in failure.api_exceptions:
+                if e.status != 404:
+                    print(failure)
+
 
 
 def delete_from_dict(k8s_client, yml_document, verbose,

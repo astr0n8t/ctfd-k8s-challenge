@@ -1,4 +1,4 @@
-from .challenges import init_chals
+from .challenges import init_chals, deinit_chals
 
 from CTFd.plugins import register_plugin_assets_directory
 
@@ -15,6 +15,7 @@ def load(app):
         register_plugin_assets_directory(app, base_path='/plugins/ctfd-k8s-challenge/assets')
     else:
         print("ctfd-k8s-challenge: Error: ctfd-k8s-challenge unable to initialize.  It will be disabled.")
+
     return
 
 def get_k8s_client():
@@ -22,5 +23,4 @@ def get_k8s_client():
         k8s.config.load_incluster_config()
     else:
         k8s.config.load_kube_config()
-    k8s.client.CustomObjectsApi().list_cluster_custom_object(group="cert-manager.io", version="v1", plural="Certificates")
     return k8s.client.ApiClient()
