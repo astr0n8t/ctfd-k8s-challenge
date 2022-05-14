@@ -1,4 +1,5 @@
 from .challenges import init_chals, deinit_chals
+from .utils import init_db
 
 from CTFd.plugins import register_plugin_assets_directory
 
@@ -10,6 +11,8 @@ def load(app):
 
     k8s_client = get_k8s_client()
     print("ctfd-k8s-challenge: Successfully loaded Kubernetes config.")
+
+    init_db()
 
     if init_chals(k8s_client):
         register_plugin_assets_directory(app, base_path='/plugins/ctfd-k8s-challenge/assets')

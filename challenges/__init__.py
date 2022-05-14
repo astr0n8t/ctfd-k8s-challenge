@@ -8,9 +8,10 @@ from ..utils import *
 
 def init_chals(k8s_client):
 
-    result = deploy_registry(k8s_client)
-    result = False if not result else deploy_certificates(k8s_client)
-    result = False if not result else deploy_web_gateway(k8s_client)
+    config = get_config()
+    result = deploy_registry(k8s_client, config)
+    result = False if not result else deploy_certificates(k8s_client, config)
+    result = False if not result else deploy_web_gateway(k8s_client, config)
 
     if result:
         CHALLENGE_CLASSES['k8s-tcp'] = k8sTcpChallengeType
@@ -20,16 +21,17 @@ def init_chals(k8s_client):
     return result
 
 def deinit_chals(k8s_client):
-    result = destroy_registry(k8s_client)
-    result = False if not result else destroy_certificates(k8s_client)
-    result = False if not result else destroy_web_gateway(k8s_client)    
+    config = get_config()
+    result = destroy_registry(k8s_client, config)
+    result = False if not result else destroy_certificates(k8s_client, config)
+    result = False if not result else destroy_web_gateway(k8s_client, config)    
 
     return result
 
-def deploy_registry(k8s_client):
+def deploy_registry(k8s_client, config):
     result = False
     registry_template = get_template(3)
-    options = {'registry_namespace': 'registry'}
+    options = {'registry_namespace': config.registry_namespace}
     if deploy_object(k8s_client, registry_template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully deployed k8s internal challenge registry.")
@@ -37,15 +39,15 @@ def deploy_registry(k8s_client):
         print("ctfd-k8s-challenge: Error: deploying k8s internal challenge registry failed!")
     return result
 
-def deploy_certificates(k8s_client):
+def deploy_certificates(k8s_client, config):
     result = False
     registry_template = get_template(4)
-    options = { 'tcp_cert_name': 'chal.luctf.dev',
-                'istio_namespace': 'istio-system',
-                'certificate_issuer_name': 'cloudflare-istio-issuer',
-                'tcp_domain_name': 'chal.luctf.dev',
-                'https_cert_name': 'web.luctf.dev',
-                'https_domain_name': 'web.luctf.dev'}
+    options = { 'tcp_cert_name': config.tcp_domain_name,
+                'istio_namespace': config.istio_namespace,
+                'certificate_issuer_name': config.certificate_issuer_name,
+                'tcp_domain_name': config.tcp_domain_name,
+                'https_cert_name': config.https_domain_name,
+                'https_domain_name': config.https_domain_name}
     if deploy_object(k8s_client, registry_template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully deployed challenge certificates.")
@@ -53,14 +55,14 @@ def deploy_certificates(k8s_client):
         print("ctfd-k8s-challenge: Error: deploying challenge certificates failed!")
     return result
 
-def deploy_web_gateway(k8s_client):
+def deploy_web_gateway(k8s_client, config):
     result = False
     registry_template = get_template(5)
-    options = { 'istio_namespace': 'istio-system',
-                'istio_ingress_name': 'istio-ingressgateway',
-                'external_https_port': 443,
-                'https_cert_name': 'web.luctf.dev',
-                'https_domain_name': 'web.luctf.dev'}
+    options = { 'istio_namespace': config.istio_namespace,
+                'istio_ingress_name': config.istio_ingress_name,
+                'external_https_port': config.external_https_port,
+                'https_cert_name': config.https_domain_name,
+                'https_domain_name': config.https_domain_name}
     if deploy_object(k8s_client, registry_template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully deployed web challenge gateway.")
@@ -68,10 +70,10 @@ def deploy_web_gateway(k8s_client):
         print("ctfd-k8s-challenge: Error: deploying web challenge gateway failed!")
     return result
 
-def destroy_registry(k8s_client):
+def destroy_registry(k8s_client, config):
     result = False
     registry_template = get_template(3)
-    options = {'registry_namespace': 'registry'}
+    options = {'registry_namespace': config.registry_namespace}
     if destroy_object(k8s_client, registry_template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully destroyed k8s internal challenge registry.")
@@ -82,12 +84,12 @@ def destroy_registry(k8s_client):
 def destroy_certificates(k8s_client):
     result = False
     registry_template = get_template(4)
-    options = { 'tcp_cert_name': 'chal.luctf.dev',
-                'istio_namespace': 'istio-system',
-                'certificate_issuer_name': 'cloudflare-istio-issuer',
-                'tcp_domain_name': 'chal.luctf.dev',
-                'https_cert_name': 'web.luctf.dev',
-                'https_domain_name': 'web.luctf.dev'}
+    options = { 'tcp_cert_name': config.tcp_domain_name,
+                'istio_namespace': config.istio_namespace,
+                'certificate_issuer_name': config.certificate_issuer_name,
+                'tcp_domain_name': config.tcp_domain_name,
+                'https_cert_name': config.https_domain_name,
+                'https_domain_name': config.https_domain_name}
     if destroy_object(k8s_client, registry_template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully destroyed challenge certificates.")
@@ -98,11 +100,11 @@ def destroy_certificates(k8s_client):
 def destroy_web_gateway(k8s_client):
     result = False
     registry_template = get_template(5)
-    options = { 'istio_namespace': 'istio-system',
-                'istio_ingress_name': 'istio-ingressgateway',
-                'external_https_port': 443,
-                'https_cert_name': 'web.luctf.dev',
-                'https_domain_name': 'web.luctf.dev'}
+    options = { 'istio_namespace': config.istio_namespace,
+                'istio_ingress_name': config.istio_ingress_name,
+                'external_https_port': config.external_https_port,
+                'https_cert_name': config.https_domain_name,
+                'https_domain_name': config.https_domain_name}
     if destroy_object(k8s_client, registry_template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully destroyed web challenge gateway.")
