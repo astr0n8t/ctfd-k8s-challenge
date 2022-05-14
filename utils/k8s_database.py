@@ -23,7 +23,6 @@ def init_db():
 def get_config():
     return k8sConfig.query.filter_by(id=1).first()
 
-
 class k8sConfig(db.Model):
     """
 	k8s Config Model. This model stores the config for the plugin.
@@ -40,3 +39,16 @@ class k8sConfig(db.Model):
     external_tcp_port = db.Column("external_tcp_port", db.Integer, index=False)
     external_https_port = db.Column("external_https_port", db.Integer, index=False)
 
+class k8sChallengeTracker(db.Model):
+    """
+	K8s Container Tracker. This model stores the users/teams active containers.
+	"""
+    id = db.Column(db.Integer, primary_key=True)
+    chal_type = db.Column("type", db.Integer, index=True)
+    team_id = db.Column("team_id", db.String(64), index=True)
+    user_id = db.Column("user_id", db.String(64), index=True)
+    image = db.Column("image", db.String(128), index=False)
+    timestamp = db.Column("timestamp", db.Integer, index=True)
+    revert_time = db.Column("revert_time", db.Integer, index=True)
+    instance_id = db.Column("instance_id", db.String(64), index=True)
+    port = db.Column("port", db.Integer, index=True)
