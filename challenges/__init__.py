@@ -30,9 +30,9 @@ def deinit_chals(k8s_client):
 
 def deploy_registry(k8s_client, config):
     result = False
-    registry_template = get_template(3)
+    template = get_template('registry')
     options = {'registry_namespace': config.registry_namespace}
-    if deploy_object(k8s_client, registry_template, options):
+    if deploy_object(k8s_client, template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully deployed k8s internal challenge registry.")
     else:
@@ -41,14 +41,14 @@ def deploy_registry(k8s_client, config):
 
 def deploy_certificates(k8s_client, config):
     result = False
-    registry_template = get_template(4)
+    template = get_template('certificates')
     options = { 'tcp_cert_name': config.tcp_domain_name,
                 'istio_namespace': config.istio_namespace,
                 'certificate_issuer_name': config.certificate_issuer_name,
                 'tcp_domain_name': config.tcp_domain_name,
                 'https_cert_name': config.https_domain_name,
                 'https_domain_name': config.https_domain_name}
-    if deploy_object(k8s_client, registry_template, options):
+    if deploy_object(k8s_client, template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully deployed challenge certificates.")
     else:
@@ -57,13 +57,13 @@ def deploy_certificates(k8s_client, config):
 
 def deploy_web_gateway(k8s_client, config):
     result = False
-    registry_template = get_template(5)
+    template = get_template('web-gateway')
     options = { 'istio_namespace': config.istio_namespace,
                 'istio_ingress_name': config.istio_ingress_name,
                 'external_https_port': config.external_https_port,
                 'https_cert_name': config.https_domain_name,
                 'https_domain_name': config.https_domain_name}
-    if deploy_object(k8s_client, registry_template, options):
+    if deploy_object(k8s_client, template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully deployed web challenge gateway.")
     else:
@@ -72,9 +72,9 @@ def deploy_web_gateway(k8s_client, config):
 
 def destroy_registry(k8s_client, config):
     result = False
-    registry_template = get_template(3)
+    template = get_template('registry')
     options = {'registry_namespace': config.registry_namespace}
-    if destroy_object(k8s_client, registry_template, options):
+    if destroy_object(k8s_client, template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully destroyed k8s internal challenge registry.")
     else:
@@ -83,14 +83,14 @@ def destroy_registry(k8s_client, config):
 
 def destroy_certificates(k8s_client):
     result = False
-    registry_template = get_template(4)
+    template = get_template('certificates')
     options = { 'tcp_cert_name': config.tcp_domain_name,
                 'istio_namespace': config.istio_namespace,
                 'certificate_issuer_name': config.certificate_issuer_name,
                 'tcp_domain_name': config.tcp_domain_name,
                 'https_cert_name': config.https_domain_name,
                 'https_domain_name': config.https_domain_name}
-    if destroy_object(k8s_client, registry_template, options):
+    if destroy_object(k8s_client, template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully destroyed challenge certificates.")
     else:
@@ -99,13 +99,13 @@ def destroy_certificates(k8s_client):
 
 def destroy_web_gateway(k8s_client):
     result = False
-    registry_template = get_template(5)
+    template = get_template('web-gateway')
     options = { 'istio_namespace': config.istio_namespace,
                 'istio_ingress_name': config.istio_ingress_name,
                 'external_https_port': config.external_https_port,
                 'https_cert_name': config.https_domain_name,
                 'https_domain_name': config.https_domain_name}
-    if destroy_object(k8s_client, registry_template, options):
+    if destroy_object(k8s_client, template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully destroyed web challenge gateway.")
     else:

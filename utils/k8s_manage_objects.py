@@ -4,10 +4,10 @@ from .k8s_manage_custom_resources import apply_custom_object_from_yaml, delete_c
 import yaml
 from jinja2 import Template
 
-def get_template(template_id):
-    template_types = ['k8s-tcp', 'k8s-web', 'k8s-random-port', 'registry', 'certificates', 'web-gateway']
+def get_template(template_name):
+    # template_types = ['k8s-tcp', 'k8s-web', 'k8s-random-port', 'registry', 'certificates', 'web-gateway', 'build']
     
-    template_path = 'CTFd/plugins/ctfd-k8s-challenge/templates/' + template_types[template_id] + '.yml.j2'
+    template_path = 'CTFd/plugins/ctfd-k8s-challenge/templates/' + template_name + '.yml.j2'
 
     template = ''
 
@@ -27,8 +27,9 @@ def deploy_object(k8s_client, template, template_variables):
 
     for yaml_file in dep:
         api_name = yaml_file['apiVersion'] 
+        kind = yaml_file['kind']
 
-        if 'cert-manager' in api_name or 'istio' in api_name:
+        if 'cert-manager' in api_name or 'istio' in api_name or kind == 'Job':
             apply_custom_object_from_yaml(k8s_client, yaml_file)
         else:
             try:
@@ -51,8 +52,9 @@ def destroy_object(k8s_client, template, template_variables):
 
     for yaml_file in dep:
         api_name = yaml_file['apiVersion'] 
+        kind = yaml_file['kind']
 
-        if 'cert-manager' in api_name or 'istio' in api_name:
+        if 'cert-manager' in api_name or 'istio' in api_name or kind == 'Job':
             delete_custom_object_from_yaml(k8s_client, yaml_file)
         else:
             try:

@@ -1,10 +1,7 @@
 from .challenges import init_chals, deinit_chals
-from .utils import init_db
+from .utils import init_db, get_k8s_client
 
 from CTFd.plugins import register_plugin_assets_directory
-
-import kubernetes as k8s
-import os
 
 def load(app):
     app.db.create_all()
@@ -21,9 +18,3 @@ def load(app):
 
     return
 
-def get_k8s_client():
-    if 'KUBERNETES_PORT' in os.environ:
-        k8s.config.load_incluster_config()
-    else:
-        k8s.config.load_kube_config()
-    return k8s.client.ApiClient()

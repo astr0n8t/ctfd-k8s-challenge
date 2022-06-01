@@ -1,22 +1,16 @@
-from CTFd.models import db, Challenges
+from CTFd.models import db, Challenges, Teams, Users, Solves, Fails, Flags, Files, Hints, Tags, ChallengeFiles
 from CTFd.plugins.challenges import BaseChallenge, CHALLENGE_CLASSES, get_chal_class
 from flask import request, Blueprint, jsonify, abort, render_template, url_for, redirect, session
 
+from ..utils import build_from_repository
+
 class k8sChallengeType(BaseChallenge):
-    id = "k8s-challenge"
-    name = "k8s-challenge"
-    templates = {
-        'create': '/plugins/ctfd-k8s-challenge/assets/create.html',
-        'update': '/plugins/ctfd-k8s-challenge/assets/update.html',
-        'view': '/plugins/ctfd-k8s-challenge/assets/view.html',
-    }
-    scripts = {
-        'create': '/plugins/ctfd-k8s-challenge/assets/create.js',
-        'update': '/plugins/ctfd-k8s-challenge/assets/update.js',
-        'view': '/plugins/ctfd-k8s-challenge/assets/view.js',
-    }
-    route = '/plugins/ctfd-k8s-challenge/assets'
-    blueprint = Blueprint('ctfd-k8s-challenge', __name__, template_folder='templates', static_folder='assets')
+    id = ""
+    name = ""
+    templates = {}
+    scripts = {}
+    route = ''
+    blueprint = None
 
     @staticmethod
     def update(challenge, request):
@@ -90,7 +84,8 @@ class k8sChallengeType(BaseChallenge):
 		:return:
 		"""
         data = request.form or request.get_json()
-        challenge = k8sChallenge(**data)
+        data['image'] = build_from_repository(data['name'], data['repository'])
+        challenge = get_k8s_challenge_class(data)
         db.session.add(challenge)
         db.session.commit()
         return challenge
@@ -122,3 +117,22 @@ class k8sChallenge(Challenges):
     image = db.Column(db.String(128), index=False)  
     repository = db.Column(db.String(128), index=False)  
 
+class k8sTcpChallenge(k8sChallenge):
+    __mapper_args__ = {'polymorphic_identity': 'k8s-tcp'}
+
+class k8sWebChallenge(k8sChallenge):
+    __mapper_args__ = {'polymorphic_identity': 'k8s-web'}
+
+class k8sRandomPortChallenge(k8sChallenge):
+    __mapper_args__ = {'polymorphic_identity': 'k8s-random-port'}
+
+
+def get_k8s_challenge_class(data):
+    instance = None
+    if data['type'] == 'k8s-tcp':
+        instance = k8sTcpChallenge(**data)
+    elif data['type'] == 'k8s-web':
+        instance = k8sWebChallenge(**data)
+    elif data['type'] == 'k8s-random-port':
+        instance = k8sRandomPortChallenge(**data)
+    return instance
