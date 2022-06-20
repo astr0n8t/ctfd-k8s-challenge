@@ -1,3 +1,4 @@
 kubernetes
 pyyaml
 jinja2
+wtforms

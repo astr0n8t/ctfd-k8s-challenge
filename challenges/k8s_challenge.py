@@ -93,24 +93,7 @@ class k8sChallengeType(BaseChallenge):
 
     @staticmethod
     def solve(user, team, challenge, request):
-        """
-		This method is used to insert Solves into the database in order to mark a challenge as solved.
-		:param team: The Team object from the database
-		:param chal: The Challenge object from the database
-		:param request: The request the user submitted
-		:return:
-		"""
-        data = request.form or request.get_json()
-        submission = data["submission"].strip()
-        solve = Solves(
-            user_id=user.id,
-            team_id=team.id if team else None,
-            challenge_id=challenge.id,
-            ip=get_ip(req=request),
-            provided=submission,
-        )
-        db.session.add(solve)
-        db.session.commit()
+        super().solve(user, team, challenge, request)
 
 class k8sChallenge(Challenges):
     __mapper_args__ = {'polymorphic_identity': 'k8s-challenge'}

@@ -1,0 +1,92 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <h1>Kubernetes Config</h1>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            {% for error in errors %}
+            <div class="alert alert-danger alert-dismissable" role="alert">
+                <span class="sr-only">Error:</span>
+                {{ error }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            {% endfor %}
+            
+            <form method="post" accept-charset="utf-8" autocomplete="off" role="form" name='k8s_config' class="form-horizontal" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="git-credential-input">
+                        Git Credential
+                    </label>
+                    <input class="form-control" type="password" name="git_credential" id="git-credential-input" placeholder="Git Credential" value=''/>
+                </div>
+                <div class="form-group">
+                    <label for="registry-namespace-input">
+                        Registry Namespace
+                    </label>
+                    <input class="form-control" type="text" name="registry_namespace" id="registry-namespace-input" placeholder="Registry Namespace" value='{{ config.registry_namespace }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="challenge-namespace-input">
+                        challenge-namespace-input Namespace
+                    </label>
+                    <input class="form-control" type="text" name="challenge_namespace" id="challenge-namespace-input" placeholder="Challenge Namespace" value='{{ config.challenge_namespace }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="istio-namespace-input">
+                        Istio Namespace
+                    </label>
+                    <input class="form-control" type="text" name="istio_namespace" id="istio-namespace-input" placeholder="Istio Namespace" value='{{ config.istio_namespace }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="tcp-domain-name-input">
+                        TCP Domain Name
+                    </label>
+                    <input class="form-control" type="text" name="tcp_domain_name" id="tcp-domain-name-input" placeholder="TCP Domain Name" value='{{ config.tcp_domain_name }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="https-domain-name-input">
+                        Web Domain Name
+                    </label>
+                    <input class="form-control" type="text" name="https_domain_name" id="https-domain-name-input" placeholder="Web Domain Name" value='{{ config.https_domain_name }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="certificate-issuer-name-input">
+                        TCP Domain Name
+                    </label>
+                    <input class="form-control" type="text" name="certificate_issuer_name" id="certificate-issuer-name-input" placeholder="Certificate Issuer Name" value='{{ config.certificate_issuer_name }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="istio-ingress-name-input">
+                        Istio Ingress Name
+                    </label>
+                    <input class="form-control" type="text" name="istio_ingress_name" id="istio-ingress-name-input" placeholder="Istio Ingress Name" value='{{ config.istio_ingress_name }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="external-tcp-port-input">
+                        External TCP Port
+                    </label>
+                    <input class="form-control" type="text" name="external_tcp_port" id="external-tcp-port-input" placeholder="External TCP Port" value='{{ config.external_tcp_port }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="external-https-port-input">
+                        External Web Port
+                    </label>
+                    <input class="form-control" type="text" name="external_https_port" id="external-https-port-input" placeholder="External Web Port" value='{{ config.external_https_port }}'/>
+                </div>
+
+                {{ form.nonce() }}
+                <div class="col-md-13 text-center">
+                    <button type="submit" tabindex="0" class="btn btn-md btn-primary btn-outlined">
+                        Submit
+                    </button>
+                </div>
+        </div>
+        <input type="hidden" name="id" value="1">
+        </form>
+    </div>
+</div>
+{% endblock content %}
