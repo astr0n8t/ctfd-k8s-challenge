@@ -1,5 +1,6 @@
 from CTFd.models import db, Challenges, Teams, Users, Solves, Fails, Flags, Files, Hints, Tags, ChallengeFiles
 from CTFd.plugins.challenges import BaseChallenge, CHALLENGE_CLASSES, get_chal_class
+from CTFd.utils.user import get_ip
 from flask import request, Blueprint, jsonify, abort, render_template, url_for, redirect, session
 
 from ..utils import build_from_repository
