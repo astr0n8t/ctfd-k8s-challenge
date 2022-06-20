@@ -18,7 +18,7 @@ spec:
         image: {{ container_name }}
         imagePullPolicy: Always
         ports:
-        - name: {{ deployment_name }}-{{ challenge_port }}
+        - name: chal-port
           containerPort: {{ challenge_port }}
           protocol: TCP
 ---
@@ -31,7 +31,7 @@ spec:
   selector:
     app: {{ deployment_name }}
   ports:
-    - name: {{ deployment_name }}-{{ challenge_port }}
+    - name: chal-port
       protocol: TCP
       port: {{ challenge_port }}
       targetPort: {{ challenge_port }}

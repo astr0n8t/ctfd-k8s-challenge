@@ -1,4 +1,6 @@
-from CTFd.models import db
+from CTFd.models import db, Challenges
+from CTFd.utils.dates import unix_time
+from datetime import datetime
 
 def init_db():
     existing_config = k8sConfig.query.filter_by(id=1).first()
@@ -23,6 +25,31 @@ def init_db():
 def get_config():
     return k8sConfig.query.filter_by(id=1).first()
 
+def insert_challenge_into_tracker(options):
+    challenge = k8sChallengeTracker()
+    challenge.chal_type = options['challenge_type']
+    challenge.team_id = options['team']
+    challenge.user_id = options['user']
+    challenge.challenge_id = options['challenge_id']
+    challenge.timestamp = unix_time(datetime.utcnow())
+    revert_time = unix_time(datetime.utcnow()) + 300
+    instance_id = options['instance_id']
+    port = options['port']
+    db.session.add(challenge)
+    db.session.commit()
+
+def get_challenge_by_id(challenge_id):
+    return Challenges.query.filter_by(id=challenge_id).first()
+
+def check_if_port_in_use(port):
+    available = False
+    query = k8sChallengeTracker.query.filter_by(port=port).first()
+
+    if not query:
+        available = True
+
+    return available
+
 class k8sConfig(db.Model):
     """
 	k8s Config Model. This model stores the config for the plugin.
@@ -44,10 +71,10 @@ class k8sChallengeTracker(db.Model):
 	K8s Container Tracker. This model stores the users/teams active containers.
 	"""
     id = db.Column(db.Integer, primary_key=True)
-    chal_type = db.Column("type", db.Integer, index=True)
+    chal_type = db.Column("type", db.String(64), index=True)
     team_id = db.Column("team_id", db.String(64), index=True)
     user_id = db.Column("user_id", db.String(64), index=True)
-    image = db.Column("image", db.String(128), index=False)
+    challenge_id = db.Column("challenge_id", db.Integer, index=True)
     timestamp = db.Column("timestamp", db.Integer, index=True)
     revert_time = db.Column("revert_time", db.Integer, index=True)
     instance_id = db.Column("instance_id", db.String(64), index=True)

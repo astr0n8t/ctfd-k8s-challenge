@@ -1,1 +1,23 @@
 {% extends "challenge.html" %}
+{% block description %}
+<div class='mb-3 text-center' id='k8s_container'>
+    <form action="/k8s_api/create" method="post">
+    <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
+    <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
+    <span>
+        <button id="instance-create-submit" class="btn" type="submit" value="Submit">
+            <small>Start Challenge Instance</small>
+    </span>
+    </form>
+</div>
+{{ challenge.html }}
+{% endblock %}
+{% block input %}
+<input id="challenge-id" class="challenge-id" type="hidden" value="{{ challenge.id }}">
+<input id="challenge-input" class="challenge-input" type="text" name="answer" placeholder="Flag" />
+{% endblock %}
+{% block submit %}
+<button id="challenge-submit" class="challenge-submit" type="submit">
+    Submit
+</button>
+{% endblock %}
