@@ -25,7 +25,13 @@
 		</small>
 	</label>
 	<input type="text" class="form-control" name="repository" placeholder="Enter Repository, i.e. github.com/user/repo " required>
-
+	<div class="form-group">
+		<label for="port">Port:<br>
+			<small class="form-text text-muted">
+				This is the port that the container image listens on.
+			</small>
+		</label>
+		<input type="text" class="form-control" name="repository" placeholder="Enter Port, i.e. 80 " required>
 </div>
 {% endblock %}
 
