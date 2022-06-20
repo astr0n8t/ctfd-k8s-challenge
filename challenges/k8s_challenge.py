@@ -115,7 +115,8 @@ class k8sChallenge(Challenges):
     __mapper_args__ = {'polymorphic_identity': 'k8s-challenge'}
     id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), primary_key=True)
     image = db.Column(db.String(128), index=False)  
-    repository = db.Column(db.String(128), index=False)  
+    repository = db.Column(db.String(128), index=False)
+    port = db.Column(db.Integer, index=False)
 
 class k8sTcpChallenge(k8sChallenge):
     __mapper_args__ = {'polymorphic_identity': 'k8s-tcp'}
