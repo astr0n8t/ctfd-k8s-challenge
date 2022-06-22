@@ -63,3 +63,24 @@ def destroy_object(k8s_client, template, template_variables):
                 result = False
                 print(e)
     return result
+
+def get_registry_password(k8s_client, config):
+    password = ""
+
+    while not password:
+        try:
+            pod_name = ""
+            pod_list = k8s_client.list_namespaced_pod(config.registry_namespace).items
+            for pod in pod_list:
+                if 'registry' in pod.metadata.name:
+                    pod_name = pod.metadata.name
+            logs = str(k8s_client.read_namespaced_pod_log(
+                name=pod_name,
+                namespace=config.registry_namespace,
+                container="registry"))
+            if "msg=\"htpasswd is missing, provisioning with default user\"" in logs:
+                password = logs.split("password=")[1].split(" user=docker")[0]
+        except Exception as e:
+            pass
+
+    return password

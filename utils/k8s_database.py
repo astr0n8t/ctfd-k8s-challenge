@@ -8,13 +8,14 @@ def init_db():
         print("ctfd-k8s-challenge: Creating new config with defaults.")
         config = k8sConfig()
         config.git_credential = ""
+        config.registry_password = ""
         config.registry_namespace = "registry"
         config.challenge_namespace = "challenges"
         config.istio_namespace = "istio-system"
         config.tcp_domain_name = "chal.luctf.dev"
         config.https_domain_name = "web.luctf.dev"
         config.certificate_issuer_name = "cloudflare-istio-issuer"
-        config.istio_ingress_name = "istio-ingressgateway"
+        config.istio_ingress_name = "ingressgateway"
         config.external_tcp_port = 443
         config.external_https_port = 443
         db.session.add(config)
@@ -56,6 +57,7 @@ class k8sConfig(db.Model):
 	"""
     id = db.Column(db.Integer, primary_key=True)
     git_credential = db.Column("git_credential", db.String(64), index=False)
+    registry_password = db.Column("registry_password", db.String(64), index=False)
     registry_namespace = db.Column("registry_namespace", db.String(64), index=False)
     challenge_namespace = db.Column("challenge_namespace", db.String(64), index=False)
     istio_namespace = db.Column("istio_namespace", db.String(64), index=False)

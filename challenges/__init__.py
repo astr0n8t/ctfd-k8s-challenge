@@ -10,9 +10,10 @@ from ..utils import *
 def init_chals(k8s_client):
 
     config = get_config()
-    result = deploy_registry(k8s_client, config)
-    result = False if not result else deploy_certificates(k8s_client, config)
+
+    result = deploy_certificates(k8s_client, config)
     result = False if not result else deploy_web_gateway(k8s_client, config)
+    result = False if not result else deploy_registry(k8s_client, config)
 
     if result:
         CHALLENGE_CLASSES['k8s-tcp'] = k8sTcpChallengeType
@@ -23,19 +24,24 @@ def init_chals(k8s_client):
 
 def deinit_chals(k8s_client):
     config = get_config()
-    result = destroy_registry(k8s_client, config)
-    result = False if not result else destroy_certificates(k8s_client, config)
+    
+    result = destroy_certificates(k8s_client, config)
     result = False if not result else destroy_web_gateway(k8s_client, config)    
+    result = False if not result else destroy_registry(k8s_client, config)
 
     return result
 
 def deploy_registry(k8s_client, config):
     result = False
     template = get_template('registry')
-    options = {'registry_namespace': config.registry_namespace}
+    options = {'registry_namespace': config.registry_namespace,
+               'istio_namespace': config.istio_namespace,
+               'https_domain_name': config.https_domain_name}
     if deploy_object(k8s_client, template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully deployed k8s internal challenge registry.")
+        config.registry_password = get_registry_password(get_k8s_v1_client(), config)
+        db.session.commit()
     else:
         print("ctfd-k8s-challenge: Error: deploying k8s internal challenge registry failed!")
     return result

@@ -1,6 +1,7 @@
 from .k8s_manage_objects import get_template, deploy_object
 from .k8s_database import get_config
 from .k8s_client import get_k8s_client
+import base64
 
 
 def build_from_repository(challenge_name, repository):
@@ -9,12 +10,17 @@ def build_from_repository(challenge_name, repository):
 
     config = get_config()
 
-    image = 'challenge-registry-service.' + config.registry_namespace + '/' + challenge_name + ':latest'
+    image = 'chal-registry.' + config.https_domain_name + '/' + challenge_name + ':latest'
     
+    registry_auth = base64.b64encode(str('docker:'+config.registry_password).encode('ascii')).decode('ascii')
+
     template = get_template('build')
     options = { 'challenge_name': challenge_name,
                 'challenge_repo': repository,
-                'registry_namespace': config.registry_namespace,}
+                'registry_namespace': config.registry_namespace,
+                'https_domain_name': config.https_domain_name,
+                'git_credential': config.git_credential,
+                'registry_auth_token': registry_auth}
 
     print("Building challenge...")
     if deploy_object(get_k8s_client(), template, options):

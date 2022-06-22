@@ -7,3 +7,10 @@ def get_k8s_client():
     else:
         k8s.config.load_kube_config()
     return k8s.client.ApiClient()
+
+def get_k8s_v1_client():
+    if 'KUBERNETES_PORT' in os.environ:
+        k8s.config.load_incluster_config()
+    else:
+        k8s.config.load_kube_config()
+    return k8s.client.CoreV1Api()

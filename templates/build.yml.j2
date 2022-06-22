@@ -12,6 +12,27 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         args:
         - "--context=git://{{ challenge_repo }}"
-        - "--destination=challenge-registry-service.{{ registry_namespace }}/{{ challenge_name }}:latest"
-        - "--insecure"
+        - "--destination=chal-registry.{{ https_domain_name }}:4430/{{ challenge_name }}:latest"
+        env:
+        - name: GIT_TOKEN
+          value: {{ git_credential }}
+        volumeMounts:
+        - name: registry-auth
+          mountPath: "/kaniko/.docker/"
+          readOnly: true
+      volumes:
+      - name: registry-auth
+        configMap:
+          name: registry-auth-map
+          items:
+          - key: "config.json"
+            path: "config.json"
       restartPolicy: Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-auth-map
+  namespace: {{ registry_namespace }}
+data:
+  config.json: "\n{\n\"auths\": {\n		\"https://chal-registry.{{ https_domain_name }}:4430/v1/\": {\n			\"auth\": \"{{ registry_auth_token }}\"\n		}\n	}\n}"

@@ -19,6 +19,13 @@ spec:
         - name: registry
           containerPort: 5000 
           protocol: TCP
+        env:
+        - name: REGISTRY_AUTH
+          value: htpasswd
+        - name: REGISTRY_AUTH_HTPASSWD_REALM
+          value: "Registry Realm"
+        - name:  REGISTRY_AUTH_HTPASSWD_PATH
+          value: /auth/htpasswd
 ---
 apiVersion: v1
 kind: Service
@@ -33,3 +40,31 @@ spec:
       protocol: TCP
       port: 80
       targetPort: 5000
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: registry-vs
+  namespace: {{ registry_namespace }}
+spec:
+  hosts:
+  - "chal-registry.{{ https_domain_name }}"
+  gateways:
+  - {{ istio_namespace }}/k8s-https-challenge-gateway
+  http:
+  - route:
+    - destination:
+        host: challenge-registry-service
+        port:
+          number: 80
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: registry
+  namespace: {{ registry_namespace }}
+spec:
+  host: challenge-registry-service
+  trafficPolicy:
+    tls:
+      mode: DISABLE
