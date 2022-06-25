@@ -1,3 +1,7 @@
+import uuid
+import hashlib
+import bcrypt
+import re
 from CTFd.models import db, Challenges
 from CTFd.plugins.challenges import BaseChallenge, CHALLENGE_CLASSES, get_chal_class
 
@@ -32,16 +36,29 @@ def deinit_chals(k8s_client):
     return result
 
 def deploy_registry(k8s_client, config):
+    def encrypt_password(username, password):
+        bcrypted = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
+        bcrypted = re.sub(r"\$2[^a]\$", "$2y$", bcrypted)
+        return f"{username}:{bcrypted}"
+
     result = False
     template = get_template('registry')
+
+    if not config.registry_password:
+        config.registry_password = str(hashlib.md5(bytes(str(uuid.uuid4()), 'utf-8')).hexdigest())
+        db.session.commit()
+    print("Registry password: ", config.registry_password)
+
+    registry_hash = encrypt_password('ctfd', config.registry_password)
+
     options = {'registry_namespace': config.registry_namespace,
                'istio_namespace': config.istio_namespace,
-               'https_domain_name': config.https_domain_name}
+               'https_domain_name': config.https_domain_name,
+               'registry_hash': registry_hash}
+
     if deploy_object(k8s_client, template, options):
         result = True
         print("ctfd-k8s-challenge: Successfully deployed k8s internal challenge registry.")
-        config.registry_password = get_registry_password(get_k8s_v1_client(), config)
-        db.session.commit()
     else:
         print("ctfd-k8s-challenge: Error: deploying k8s internal challenge registry failed!")
     return result

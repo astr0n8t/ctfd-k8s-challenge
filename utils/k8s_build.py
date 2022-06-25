@@ -12,7 +12,7 @@ def build_from_repository(challenge_name, repository):
 
     image = 'chal-registry.' + config.https_domain_name + '/' + challenge_name + ':latest'
     
-    registry_auth = base64.b64encode(str('docker:'+config.registry_password).encode('ascii')).decode('ascii')
+    registry_auth = base64.b64encode(str('ctfd:'+config.registry_password).encode('ascii')).decode('ascii')
 
     template = get_template('build')
     options = { 'challenge_name': challenge_name,

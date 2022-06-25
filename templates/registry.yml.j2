@@ -26,6 +26,25 @@ spec:
           value: "Registry Realm"
         - name:  REGISTRY_AUTH_HTPASSWD_PATH
           value: /auth/htpasswd
+        volumeMounts:
+        - name: registry-htpasswd
+          mountPath: "/auth/"
+          readOnly: true
+      volumes:
+      - name: registry-htpasswd
+        configMap:
+          name: registry-htpasswd-map
+          items:
+          - key: "htpasswd"
+            path: "htpasswd"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-htpasswd-map
+  namespace: {{ registry_namespace }}
+data:
+  htpasswd: "{{ registry_hash }}"
 ---
 apiVersion: v1
 kind: Service
