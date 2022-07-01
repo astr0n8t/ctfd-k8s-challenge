@@ -13,6 +13,7 @@ def build_from_repository(challenge_name, repository):
     image = 'chal-registry.' + config.https_domain_name + '/' + challenge_name + ':latest'
     
     registry_auth = base64.b64encode(str('ctfd:'+config.registry_password).encode('ascii')).decode('ascii')
+    registry_data = base64.b64encode(str('{"auths":{"challenge-registry-service.' + config.registry_namespace + '":{"username":"ctfd","password":"' + config.registry_password + '","auth":"' + registry_auth + '"}' + '}' + '}').encode('ascii')).decode('ascii')
 
     template = get_template('build')
     options = { 'challenge_name': challenge_name,
@@ -20,7 +21,7 @@ def build_from_repository(challenge_name, repository):
                 'registry_namespace': config.registry_namespace,
                 'https_domain_name': config.https_domain_name,
                 'git_credential': config.git_credential,
-                'registry_auth_token': registry_auth}
+                'registry_data': registry_data}
 
     print("Building challenge...")
     if deploy_object(get_k8s_client(), template, options):

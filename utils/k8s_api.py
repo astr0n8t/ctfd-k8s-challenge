@@ -1,4 +1,5 @@
 import uuid
+import base64
 import random
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.user import get_current_team, get_current_user
@@ -46,7 +47,7 @@ def define_k8s_api(app):
         options['deployment_name'] = 'chal-' + str(challenge.id) + '-' + options['instance_id']
         options['challenge_namespace'] = config.challenge_namespace
         options['container_name'] = challenge.image
-        options['challenge_port'] = 8000 #challenge.port
+        options['challenge_port'] = challenge.port
         options['random_port'] = int(options['port'])
         options['istio_namespace'] = config.istio_namespace
         options['istio_ingress_name'] = config.istio_ingress_name
@@ -55,6 +56,9 @@ def define_k8s_api(app):
         options['tcp_cert_name'] = config.tcp_domain_name
         options['tcp_domain_name'] = config.tcp_domain_name
         options['https_domain_name'] = config.https_domain_name
+
+        registry_auth = base64.b64encode(str('ctfd:'+config.registry_password).encode('ascii')).decode('ascii')
+        options['registry_data'] = base64.b64encode(str('{"auths":{"chal-registry.' + config.https_domain_name + '":{"username":"ctfd","password":"' + config.registry_password + '","auth":"' + registry_auth + '"}' + '}' + '}').encode('ascii')).decode('ascii')
 
         challenge_template = get_template(options['challenge_type'])
 
