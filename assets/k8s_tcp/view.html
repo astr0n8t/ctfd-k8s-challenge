@@ -1,7 +1,7 @@
 {% extends "challenge.html" %}
 {% block description %}
 <div class='mb-3 text-center' id='k8s_container'>
-    <form action="/k8s_api/create" method="post">
+    <form action="/api/v1/k8s/create" method="post">
     <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
     <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
     <span>

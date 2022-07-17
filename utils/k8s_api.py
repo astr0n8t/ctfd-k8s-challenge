@@ -13,7 +13,7 @@ from .k8s_database import get_config, insert_challenge_into_tracker, get_challen
 def define_k8s_api(app):
     k8s_api = Blueprint('k8s_api', __name__, template_folder='templates', static_folder='assets')
 
-    @k8s_api.route("/k8s_api/create", methods=["POST"])
+    @k8s_api.route("/api/v1/k8s/create", methods=["POST"])
     @authed_only
     def create():
 
@@ -35,9 +35,9 @@ def define_k8s_api(app):
         options['instance_id'] = str(uuid.uuid4())
         
         if options['challenge_type'] == 'k8s-random-port':
-            test_port = random.randint(45000, 50000)
+            test_port = random.randint(30000, 32767)
             while not check_if_port_in_use(test_port):
-                test_port = random.randint(45000, 50000)
+                test_port = random.randint(30000, 32767)
             options['port'] = test_port
         elif options['challenge_type'] == 'k8s-tcp':
             options['port'] = int(config.external_tcp_port)
