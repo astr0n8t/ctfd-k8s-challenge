@@ -63,3 +63,33 @@ def destroy_object(k8s_client, template, template_variables):
                 result = False
                 print(e)
     return result
+
+def add_ingress_port(k8s_client, config, port):
+    
+    result = True
+
+    name = 'istio-' + config.istio_ingress_name
+    namespace = config.istio_namespace
+    body = {"spec":{"$setElementOrder/ports":[{"port":port}],"ports":[{"name": str(port),"port":port,"protocol":"TCP","targetPort":port}]}}
+    
+    try:
+        api_response = k8s_client.patch_namespaced_service(name, namespace, body)
+    except Exception as e:
+        result = False
+        print(e)
+    return result
+
+def delete_ingress_port(k8s_client, config, port):
+    
+    result = True
+
+    name = 'istio-' + config.istio_ingress_name
+    namespace = config.istio_namespace
+    body = {"spec":{"ports":[{"port":port}],"ports":[{"$patch":"delete","port":port}]}}
+    
+    try:
+        api_response = k8s_client.patch_namespaced_service(name, namespace, body)
+    except Exception as e:
+        result = False
+        print(e)
+    return result

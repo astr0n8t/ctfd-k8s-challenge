@@ -6,8 +6,8 @@ from CTFd.utils.user import get_current_team, get_current_user
 from CTFd.utils.decorators import authed_only
 from flask import request, Blueprint, render_template
 
-from .k8s_client import get_k8s_client
-from .k8s_manage_objects import get_template, deploy_object, destroy_object
+from .k8s_client import get_k8s_client, get_k8s_v1_client
+from .k8s_manage_objects import get_template, deploy_object, destroy_object, add_ingress_port
 from .k8s_database import get_config, insert_challenge_into_tracker, get_challenge_by_id, check_if_port_in_use
 
 def define_k8s_api(app):
@@ -35,10 +35,13 @@ def define_k8s_api(app):
         options['instance_id'] = str(uuid.uuid4())
         
         if options['challenge_type'] == 'k8s-random-port':
-            test_port = random.randint(30000, 32767)
+            test_port = random.randint(40000, 50000)
             while not check_if_port_in_use(test_port):
-                test_port = random.randint(30000, 32767)
-            options['port'] = test_port
+                test_port = random.randint(40000, 50000)
+            if add_ingress_port(get_k8s_v1_client(), config, test_port):
+                options['port'] = test_port
+            else:
+                return "Error while creating challenge", 500
         elif options['challenge_type'] == 'k8s-tcp':
             options['port'] = int(config.external_tcp_port)
         elif options['challenge_type'] == 'k8s-web':
