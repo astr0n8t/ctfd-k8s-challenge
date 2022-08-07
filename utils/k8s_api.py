@@ -47,7 +47,7 @@ def define_k8s_api(app):
         elif options['challenge_type'] == 'k8s-web':
             options['port'] = int(config.external_https_port)
 
-        options['deployment_name'] = 'chal-' + str(challenge.id) + '-' + options['instance_id']
+        options['deployment_name'] = 'chal-' + options['instance_id']
         options['challenge_namespace'] = config.challenge_namespace
         options['container_name'] = challenge.image
         options['challenge_port'] = challenge.port
