@@ -3,12 +3,12 @@ import base64
 import random
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.user import get_current_team, get_current_user
-from CTFd.utils.decorators import authed_only
+from CTFd.utils.decorators import admins_only, authed_only
 from flask import request, Blueprint, render_template
 
 from .k8s_client import get_k8s_client, get_k8s_v1_client
-from .k8s_manage_objects import get_template, deploy_object, destroy_object, add_ingress_port
-from .k8s_database import get_config, insert_challenge_into_tracker, get_challenge_by_id, check_if_port_in_use
+from .k8s_manage_objects import get_template, deploy_object, destroy_object, add_ingress_port, delete_ingress_port
+from .k8s_database import get_config, insert_challenge_into_tracker, get_challenge_from_tracker, remove_challenge_from_tracker, get_challenge_tracker, get_challenge_by_id, check_if_port_in_use
 
 def define_k8s_api(app):
     k8s_api = Blueprint('k8s_api', __name__, template_folder='templates', static_folder='assets')
@@ -16,6 +16,11 @@ def define_k8s_api(app):
     @k8s_api.route("/api/v1/k8s/create", methods=["POST"])
     @authed_only
     def create():
+
+        user_current_challenge = get_challenge_from_tracker(get_current_user().id)
+
+        if user_current_challenge:
+            return "User already has a challenge instance running", 200
 
         options = {}
         config = get_config()
@@ -70,5 +75,59 @@ def define_k8s_api(app):
             return "Challenge deployed successfully", 200
 
         return "Error while creating challenge", 500
+
+    @k8s_api.route("/api/v1/k8s/delete", methods=["POST"])
+    @authed_only
+    def delete():
+
+        challenge = get_challenge_from_tracker(get_current_user().id)
+
+        if challenge and challenge.challenge_id == int(request.form['challenge_id']):
+
+            options = {}
+            config = get_config()
+
+            success = True
+
+            options['deployment_name'] = 'chal-' + str(challenge.instance_id)
+            options['challenge_namespace'] = config.challenge_namespace
+            options['istio_namespace'] = config.istio_namespace
+            challenge_template = get_template(challenge.chal_type)
+            if destroy_object(get_k8s_client(), challenge_template, options):
+                if challenge.chal_type == 'k8s-random-port':
+                    delete_ingress_port(get_k8s_v1_client(), config, challenge.port)
+                remove_challenge_from_tracker(challenge.id)
+                return "Challenge deleted successfully", 200
+        else:
+            return "Challenge instance not started", 200
+
+        return "Error while deleting challenges", 500
+
+    @k8s_api.route("/api/v1/k8s/delete_all", methods=["POST"])
+    @admins_only
+    def delete_all():
+
+        challenge_tracker = get_challenge_tracker()
+        config = get_config()
+
+        success = True
+
+        for challenge in challenge_tracker:
+            options = {}
+            options['deployment_name'] = 'chal-' + str(challenge.instance_id)
+            options['challenge_namespace'] = config.challenge_namespace
+            options['istio_namespace'] = config.istio_namespace
+            challenge_template = get_template(challenge.chal_type)
+            if destroy_object(get_k8s_client(), challenge_template, options):
+                if challenge.chal_type == 'k8s-random-port':
+                    delete_ingress_port(get_k8s_v1_client(), config, challenge.port)
+                remove_challenge_from_tracker(challenge.id)
+            else:
+                success = False
+            
+        if success:
+            return "Challenges deleted successfully", 200
+        return "Error while deleting challenges", 500
+
 
     app.register_blueprint(k8s_api)

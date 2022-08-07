@@ -26,6 +26,12 @@ def init_db():
 def get_config():
     return k8sConfig.query.filter_by(id=1).first()
 
+def get_challenge_tracker():
+    return k8sChallengeTracker.query.all()
+
+def get_challenge_from_tracker(current_user_id):
+    return k8sChallengeTracker.query.filter_by(user_id=current_user_id).first()
+
 def insert_challenge_into_tracker(options):
     challenge = k8sChallengeTracker()
     challenge.chal_type = options['challenge_type']
@@ -33,11 +39,16 @@ def insert_challenge_into_tracker(options):
     challenge.user_id = options['user']
     challenge.challenge_id = options['challenge_id']
     challenge.timestamp = unix_time(datetime.utcnow())
-    revert_time = unix_time(datetime.utcnow()) + 300
-    instance_id = options['instance_id']
-    port = options['port']
+    challenge.revert_time = unix_time(datetime.utcnow()) + 300
+    challenge.instance_id = options['instance_id']
+    challenge.port = options['port']
     db.session.add(challenge)
     db.session.commit()
+
+def remove_challenge_from_tracker(instance_id):
+    k8sChallengeTracker.query.filter_by(id=instance_id).delete()
+    db.session.commit()
+    return
 
 def get_challenge_by_id(challenge_id):
     return Challenges.query.filter_by(id=challenge_id).first()

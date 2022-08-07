@@ -1,6 +1,15 @@
 {% extends "challenge.html" %}
 {% block description %}
 <div class='mb-3 text-center' id='k8s_container'>
+    <div>
+    <form action="/api/v1/k8s/delete" method="post">
+    <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
+    <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
+    <span>
+        <button id="instance-delete-submit" class="btn" type="submit" value="Submit">
+            <small>Stop Challenge Instance</small>
+    </span>
+    </form>
     <form action="/api/v1/k8s/create" method="post">
     <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
     <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
@@ -9,6 +18,7 @@
             <small>Start Challenge Instance</small>
     </span>
     </form>
+    </div>
 </div>
 {{ challenge.html }}
 {% endblock %}
