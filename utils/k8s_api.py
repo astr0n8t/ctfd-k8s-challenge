@@ -1,10 +1,11 @@
 import uuid
 import base64
 import random
+import urllib.parse
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.user import get_current_team, get_current_user
 from CTFd.utils.decorators import admins_only, authed_only
-from flask import request, Blueprint, render_template
+from flask import request, Blueprint, render_template, redirect
 
 from .k8s_client import get_k8s_client, get_k8s_v1_client
 from .k8s_manage_objects import get_template, deploy_object, destroy_object, add_ingress_port, delete_ingress_port
@@ -72,9 +73,35 @@ def define_k8s_api(app):
 
         if deploy_object(get_k8s_client(), challenge_template, options):
             insert_challenge_into_tracker(options)
-            return "Challenge deployed successfully", 200
+
+            redirect_url = request.referrer + '#' + urllib.parse.quote_plus(challenge.name) + '-' + str(challenge.id)
+            return redirect(redirect_url), 302
 
         return "Error while creating challenge", 500
+
+    @k8s_api.route("/api/v1/k8s/get", methods=["GET"])
+    @authed_only
+    def get():
+
+        information = {'InstanceRunning': False, 'ThisChallengeInstance': False, 'ExpireTime': 0}
+
+        challenge = get_challenge_from_tracker(get_current_user().id)
+
+        if challenge:
+            if challenge.challenge_id == int(request.args.get('challenge_id')):
+                config = get_config()
+
+                if challenge.chal_type == 'k8s-web':
+                    information['ConnectionURL'] = str('https://chal-' + challenge.instance_id + '.' + config.https_domain_name)
+                else:
+                    information['ConnectionURL'] = str('chal-' + challenge.instance_id + '.' + config.tcp_domain_name)
+                information['ConnectionPort'] = challenge.port
+                information['InstanceRunning'] = True
+                information['ThisChallengeInstance'] = True
+                information['ExpireTime'] = int(challenge.revert_time)
+            else:
+                information['InstanceRunning'] = True
+        return information, 200
 
     @k8s_api.route("/api/v1/k8s/delete", methods=["POST"])
     @authed_only
@@ -97,9 +124,9 @@ def define_k8s_api(app):
                 if challenge.chal_type == 'k8s-random-port':
                     delete_ingress_port(get_k8s_v1_client(), config, challenge.port)
                 remove_challenge_from_tracker(challenge.id)
-                return "Challenge deleted successfully", 200
+                return redirect(request.referrer), 302
         else:
-            return "Challenge instance not started", 200
+            return redirect(request.referrer), 302
 
         return "Error while deleting challenges", 500
 
@@ -126,7 +153,7 @@ def define_k8s_api(app):
                 success = False
             
         if success:
-            return "Challenges deleted successfully", 200
+            return redirect(request.referrer), 302
         return "Error while deleting challenges", 500
 
 

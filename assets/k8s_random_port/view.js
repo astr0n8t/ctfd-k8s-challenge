@@ -35,3 +35,50 @@ CTFd._internal.challenge.submit = function(preview) {
     return response;
   });
 };
+
+function get_k8s_status(id) {
+  $.get("/api/v1/k8s/get?challenge_id="+id, function(result) {
+    if (result.InstanceRunning) {
+        if (result.ThisChallengeInstance) {
+          connectionURL = result.ConnectionURL
+          connectionPort = result.ConnectionPort
+          expireTime = result.ExpireTime
+
+          $('#k8s_connection').html('Connection Information:<br/>' + connectionURL + ':' + connectionPort);
+          $('#k8s_connection').css('display', 'block')
+          var countDownDate = new Date(parseInt(result.ExpireTime) * 1000);
+          var countDownIntervalID = setInterval(function() {
+              var now = new Date().getTime();
+              var distance = countDownDate - now;
+              var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+              var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+              if (seconds < 10) {
+                  seconds = "0" + seconds
+              }
+              $('#k8s_countdown').html('Instance expires in ' + minutes + ':' + seconds);
+              if (distance < 0) {
+                  clearInterval(countDownIntervalID);
+                  $('#k8s_start').css('display', 'block')
+                  $('#k8s_stop').css('display', 'none')
+                  $('#k8s_connection').css('display', 'none')
+                  $('#k8s_countdown').css('display', 'none')
+              }
+          }, 1000);
+          $('#k8s_countdown').css('display', 'block')
+          $('#k8s_start').css('display', 'none')
+          $('#k8s_stop').css('display', 'block')
+        } else {
+          $('#k8s_connection').html('A challenge instance is already running.  You can only have one challenge instance running at a time.')
+          $('#k8s_connection').css('display', 'block')
+          $('#k8s_countdown').css('display', 'none')
+          $('#k8s_start').css('display', 'none')
+          $('#k8s_stop').css('display', 'none')
+        }
+      } else {
+        $('#k8s_start').css('display', 'block')
+        $('#k8s_stop').css('display', 'none')
+        $('#k8s_connection').css('display', 'none')
+        $('#k8s_countdown').css('display', 'none')
+      }
+  });
+};
