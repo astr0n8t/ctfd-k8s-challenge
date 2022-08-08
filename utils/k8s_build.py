@@ -6,7 +6,7 @@ import base64
 
 def build_from_repository(challenge_name, repository):
 
-    challenge_name = challenge_name.replace(" ", "_").lower().strip()
+    challenge_name = challenge_name.replace(" ", "-").lower().strip()
 
     config = get_config()
 
