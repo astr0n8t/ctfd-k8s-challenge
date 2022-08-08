@@ -39,7 +39,7 @@ def insert_challenge_into_tracker(options):
     challenge.user_id = options['user']
     challenge.challenge_id = options['challenge_id']
     challenge.timestamp = unix_time(datetime.utcnow())
-    challenge.revert_time = unix_time(datetime.utcnow()) + 300
+    challenge.revert_time = unix_time(datetime.utcnow()) + 3600
     challenge.instance_id = options['instance_id']
     challenge.port = options['port']
     db.session.add(challenge)
