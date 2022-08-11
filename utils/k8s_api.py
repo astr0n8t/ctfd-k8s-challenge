@@ -9,7 +9,7 @@ from flask import request, Blueprint, render_template, redirect
 
 from .k8s_client import get_k8s_client, get_k8s_v1_client
 from .k8s_manage_objects import get_template, deploy_object, destroy_object, add_ingress_port, delete_ingress_port
-from .k8s_database import get_config, insert_challenge_into_tracker, get_challenge_from_tracker, remove_challenge_from_tracker, get_challenge_tracker, get_challenge_by_id, check_if_port_in_use
+from .k8s_database import get_config, insert_challenge_into_tracker, get_challenge_from_tracker, remove_challenge_from_tracker, get_challenge_tracker, get_challenge_by_id, check_if_port_in_use, get_expired_challenges
 
 def define_k8s_api(app):
     k8s_api = Blueprint('k8s_api', __name__, template_folder='templates', static_folder='assets')
@@ -17,6 +17,11 @@ def define_k8s_api(app):
     @k8s_api.route("/api/v1/k8s/create", methods=["POST"])
     @authed_only
     def create():
+
+        # Would like a better way to handle this to ensure that this happens at regular intervals.
+        challenges = get_expired_challenges()
+        for challenge in challenges:
+            delete_challenge_instance(challenge)
 
         user_current_challenge = get_challenge_from_tracker(get_current_user().id)
 
@@ -72,7 +77,7 @@ def define_k8s_api(app):
         challenge_template = get_template(options['challenge_type'])
 
         if deploy_object(get_k8s_client(), challenge_template, options):
-            insert_challenge_into_tracker(options)
+            insert_challenge_into_tracker(options, config.expire_interval)
 
             redirect_url = request.referrer + '#' + urllib.parse.quote_plus(challenge.name) + '-' + str(challenge.id)
             return redirect(redirect_url), 302

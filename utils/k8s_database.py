@@ -1,6 +1,7 @@
 from CTFd.models import db, Challenges
 from CTFd.utils.dates import unix_time
 from datetime import datetime
+from sqlalchemy import text
 
 def init_db():
     existing_config = k8sConfig.query.filter_by(id=1).first()
@@ -18,6 +19,7 @@ def init_db():
         config.istio_ingress_name = "ingressgateway"
         config.external_tcp_port = 443
         config.external_https_port = 443
+        config.expire_interval = 3600
         db.session.add(config)
         db.session.commit()
     else:
@@ -26,20 +28,25 @@ def init_db():
 def get_config():
     return k8sConfig.query.filter_by(id=1).first()
 
+def get_expired_challenges():
+    expire_time = int(unix_time(datetime.utcnow()))
+    query_str = 'revert_time<' + str(expire_time)
+    return k8sChallengeTracker.query.filter(text(query_str)).order_by(text('revert_time')).all()
+
 def get_challenge_tracker():
     return k8sChallengeTracker.query.all()
 
 def get_challenge_from_tracker(current_user_id):
     return k8sChallengeTracker.query.filter_by(user_id=current_user_id).first()
 
-def insert_challenge_into_tracker(options):
+def insert_challenge_into_tracker(options, expire_time):
     challenge = k8sChallengeTracker()
     challenge.chal_type = options['challenge_type']
     challenge.team_id = options['team']
     challenge.user_id = options['user']
     challenge.challenge_id = options['challenge_id']
     challenge.timestamp = unix_time(datetime.utcnow())
-    challenge.revert_time = unix_time(datetime.utcnow()) + 3600
+    challenge.revert_time = unix_time(datetime.utcnow()) + expire_time
     challenge.instance_id = options['instance_id']
     challenge.port = options['port']
     db.session.add(challenge)
@@ -78,6 +85,7 @@ class k8sConfig(db.Model):
     istio_ingress_name = db.Column("istio_ingress_name", db.String(64), index=False)
     external_tcp_port = db.Column("external_tcp_port", db.Integer, index=False)
     external_https_port = db.Column("external_https_port", db.Integer, index=False)
+    expire_interval = db.Column("expire_interval", db.Integer, index=False)
 
 class k8sChallengeTracker(db.Model):
     """
