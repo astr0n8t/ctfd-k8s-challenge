@@ -110,20 +110,7 @@ def define_k8s_api(app):
         challenge = get_challenge_from_tracker(get_current_user().id)
 
         if challenge and challenge.challenge_id == int(request.form['challenge_id']):
-
-            options = {}
-            config = get_config()
-
-            success = True
-
-            options['deployment_name'] = 'chal-' + str(challenge.instance_id)
-            options['challenge_namespace'] = config.challenge_namespace
-            options['istio_namespace'] = config.istio_namespace
-            challenge_template = get_template(challenge.chal_type)
-            if destroy_object(get_k8s_client(), challenge_template, options):
-                if challenge.chal_type == 'k8s-random-port':
-                    delete_ingress_port(get_k8s_v1_client(), config, challenge.port)
-                remove_challenge_from_tracker(challenge.id)
+            if delete_challenge_instance(challenge):
                 return redirect(request.referrer), 302
         else:
             return redirect(request.referrer), 302
@@ -135,21 +122,10 @@ def define_k8s_api(app):
     def delete_all():
 
         challenge_tracker = get_challenge_tracker()
-        config = get_config()
-
         success = True
 
         for challenge in challenge_tracker:
-            options = {}
-            options['deployment_name'] = 'chal-' + str(challenge.instance_id)
-            options['challenge_namespace'] = config.challenge_namespace
-            options['istio_namespace'] = config.istio_namespace
-            challenge_template = get_template(challenge.chal_type)
-            if destroy_object(get_k8s_client(), challenge_template, options):
-                if challenge.chal_type == 'k8s-random-port':
-                    delete_ingress_port(get_k8s_v1_client(), config, challenge.port)
-                remove_challenge_from_tracker(challenge.id)
-            else:
+            if not delete_challenge_instance(challenge):
                 success = False
             
         if success:
@@ -158,3 +134,20 @@ def define_k8s_api(app):
 
 
     app.register_blueprint(k8s_api)
+
+def delete_challenge_instance(challenge):
+    deleted = False
+    options = {}
+    config = get_config()
+
+    options['deployment_name'] = 'chal-' + str(challenge.instance_id)
+    options['challenge_namespace'] = config.challenge_namespace
+    options['istio_namespace'] = config.istio_namespace
+    challenge_template = get_template(challenge.chal_type)
+    if destroy_object(get_k8s_client(), challenge_template, options):
+        if challenge.chal_type == 'k8s-random-port':
+            delete_ingress_port(get_k8s_v1_client(), config, challenge.port)
+        remove_challenge_from_tracker(challenge.id)
+        deleted = True
+
+    return deleted

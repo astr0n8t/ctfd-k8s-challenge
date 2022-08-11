@@ -1,9 +1,9 @@
 from CTFd.models import db, Challenges, Teams, Users, Solves, Fails, Flags, Files, Hints, Tags, ChallengeFiles
 from CTFd.plugins.challenges import BaseChallenge, CHALLENGE_CLASSES, get_chal_class
-from CTFd.utils.user import get_ip
+from CTFd.utils.user import get_ip, get_current_user
 from flask import request, Blueprint, jsonify, abort, render_template, url_for, redirect, session
 
-from ..utils import build_from_repository
+from ..utils import build_from_repository, delete_challenge_instance, get_challenge_from_tracker, get_challenge_tracker
 
 class k8sChallengeType(BaseChallenge):
     id = ""
@@ -37,6 +37,10 @@ class k8sChallengeType(BaseChallenge):
 		:param challenge:
 		:return:
 		"""
+        challenge_tracker = get_challenge_tracker()
+        for challenge in challenge_tracker:
+            delete_challenge_instance(challenge)
+
         Fails.query.filter_by(challenge_id=challenge.id).delete()
         Solves.query.filter_by(challenge_id=challenge.id).delete()
         Flags.query.filter_by(challenge_id=challenge.id).delete()
@@ -93,7 +97,18 @@ class k8sChallengeType(BaseChallenge):
 
     @staticmethod
     def solve(user, team, challenge, request):
-        super().solve(user, team, challenge, request)
+        delete_challenge_instance(get_challenge_from_tracker(user.id))
+        data = request.form or request.get_json()
+        submission = data["submission"].strip()
+        solve = Solves(
+            user_id=user.id,
+            team_id=team.id if team else None,
+            challenge_id=challenge.id,
+            ip=get_ip(req=request),
+            provided=submission,
+        )
+        db.session.add(solve)
+        db.session.commit()
 
 class k8sChallenge(Challenges):
     __mapper_args__ = {'polymorphic_identity': 'k8s-challenge'}
