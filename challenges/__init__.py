@@ -18,6 +18,7 @@ def init_chals(k8s_client):
     result = deploy_certificates(k8s_client, config)
     result = False if not result else deploy_web_gateway(k8s_client, config)
     result = False if not result else deploy_registry(k8s_client, config)
+    result = False if not result else deploy_cleanup_cronjob(k8s_client, config)
 
     if result:
         CHALLENGE_CLASSES['k8s-tcp'] = k8sTcpChallengeType
@@ -30,6 +31,7 @@ def deinit_chals(k8s_client):
     config = get_config()
     
     result = destroy_certificates(k8s_client, config)
+    result = False if not result else destroy_cleanup_cronjob(k8s_client, config)   
     result = False if not result else destroy_web_gateway(k8s_client, config)    
     result = False if not result else destroy_registry(k8s_client, config)
 
@@ -94,6 +96,18 @@ def deploy_web_gateway(k8s_client, config):
         print("ctfd-k8s-challenge: Error: deploying web challenge gateway failed!")
     return result
 
+def deploy_cleanup_cronjob(k8s_client, config):
+    result = False
+    template = get_template('clean')
+    options = {'ctfd_url': config.ctfd_url,
+               'challenge_namespace': config.challenge_namespace}
+    if deploy_object(k8s_client, template, options):
+        result = True
+        print("ctfd-k8s-challenge: Successfully deployed cleanup cronjob.")
+    else:
+        print("ctfd-k8s-challenge: Error: deploying cleanup cronjob failed!")
+    return result
+
 def destroy_registry(k8s_client, config):
     result = False
     template = get_template('registry')
@@ -136,3 +150,14 @@ def destroy_web_gateway(k8s_client):
         print("ctfd-k8s-challenge: Error: destroying web challenge gateway failed!")
     return result
     
+def destroy_cleanup_cronjob(k8s_client, config):
+    result = False
+    template = get_template('clean')
+    options = {'ctfd_url': config.ctfd_url,
+               'challenge_namespace': config.challenge_namespace}
+    if destroy_object(k8s_client, template, options):
+        result = True
+        print("ctfd-k8s-challenge: Successfully destroyed cleanup cronjob.")
+    else:
+        print("ctfd-k8s-challenge: Error: destroying cleanup cronjob failed!")
+    return result

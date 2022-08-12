@@ -18,11 +18,6 @@ def define_k8s_api(app):
     @authed_only
     def create():
 
-        # Would like a better way to handle this to ensure that this happens at regular intervals.
-        challenges = get_expired_challenges()
-        for challenge in challenges:
-            delete_challenge_instance(challenge)
-
         user_current_challenge = get_challenge_from_tracker(get_current_user().id)
 
         if user_current_challenge:
@@ -137,6 +132,16 @@ def define_k8s_api(app):
             return redirect(request.referrer), 302
         return "Error while deleting challenges", 500
 
+    @k8s_api.route("/api/v1/k8s/clean", methods=["GET"])
+    def clean():
+        try:
+            challenges = get_expired_challenges()
+            for challenge in challenges:
+                delete_challenge_instance(challenge)
+            return "", 200
+        except Exception as e:
+            print("ERROR: ctfd-k8s-challenges: ", e)
+            return "An error occurred while cleaning.", 500
 
     app.register_blueprint(k8s_api)
 
