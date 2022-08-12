@@ -2,6 +2,7 @@ from CTFd.models import db, Challenges
 from CTFd.utils.dates import unix_time
 from datetime import datetime
 from sqlalchemy import text
+from math import floor
 
 def init_db():
     existing_config = k8sConfig.query.filter_by(id=1).first()
@@ -33,6 +34,16 @@ def get_expired_challenges():
     expire_time = int(unix_time(datetime.utcnow()))
     query_str = 'revert_time<' + str(expire_time)
     return k8sChallengeTracker.query.filter(text(query_str)).order_by(text('revert_time')).all()
+
+def extend_challenge_time(challenge):
+    extended = False
+    config = get_config()
+    if challenge.revert_time - unix_time(datetime.utcnow()) < config.expire_interval/2:
+        challenge.revert_time = challenge.revert_time + floor(config.expire_interval/2)
+        db.session.add(challenge)
+        db.session.commit()
+        extended = True
+    return extended
 
 def get_challenge_tracker():
     return k8sChallengeTracker.query.all()

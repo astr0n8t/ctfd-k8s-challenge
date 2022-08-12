@@ -2,6 +2,7 @@ import uuid
 import base64
 import random
 import urllib.parse
+from datetime import datetime
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.user import get_current_team, get_current_user
 from CTFd.utils.decorators import admins_only, authed_only
@@ -9,7 +10,7 @@ from flask import request, Blueprint, render_template, redirect
 
 from .k8s_client import get_k8s_client, get_k8s_v1_client
 from .k8s_manage_objects import get_template, deploy_object, destroy_object, add_ingress_port, delete_ingress_port
-from .k8s_database import get_config, insert_challenge_into_tracker, get_challenge_from_tracker, remove_challenge_from_tracker, get_challenge_tracker, get_challenge_by_id, check_if_port_in_use, get_expired_challenges
+from .k8s_database import *
 
 def define_k8s_api(app):
     k8s_api = Blueprint('k8s_api', __name__, template_folder='templates', static_folder='assets')
@@ -99,6 +100,10 @@ def define_k8s_api(app):
                 information['InstanceRunning'] = True
                 information['ThisChallengeInstance'] = True
                 information['ExpireTime'] = int(challenge.revert_time)
+                if information['ExpireTime'] - unix_time(datetime.utcnow()) < config.expire_interval/2:
+                    information['ExtendAvailable'] = True
+                else:
+                    information['ExtendAvailable'] = False
             else:
                 information['InstanceRunning'] = True
         return information, 200
@@ -142,6 +147,19 @@ def define_k8s_api(app):
         except Exception as e:
             print("ERROR: ctfd-k8s-challenges: ", e)
             return "An error occurred while cleaning.", 500
+
+    @k8s_api.route("/api/v1/k8s/extend", methods=["POST"])
+    def extend():
+        challenge = get_challenge_from_tracker(get_current_user().id)
+
+        if challenge:
+            if challenge.challenge_id == int(request.form['challenge_id']):
+                if extend_challenge_time(challenge):
+                    chal = get_challenge_by_id(int(request.form['challenge_id']))
+                    redirect_url = request.referrer + '#' + urllib.parse.quote_plus(chal.name) + '-' + str(chal.id)
+                    return redirect(redirect_url), 302 
+        
+        return redirect(request.referrer), 302
 
     app.register_blueprint(k8s_api)
 
