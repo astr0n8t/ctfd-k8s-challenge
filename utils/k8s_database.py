@@ -20,6 +20,7 @@ def init_db():
         config.external_tcp_port = 443
         config.external_https_port = 443
         config.expire_interval = 3600
+        config.ctfd_url = 'http://ctfd-service.ctfd'
         db.session.add(config)
         db.session.commit()
     else:
@@ -86,6 +87,7 @@ class k8sConfig(db.Model):
     external_tcp_port = db.Column("external_tcp_port", db.Integer, index=False)
     external_https_port = db.Column("external_https_port", db.Integer, index=False)
     expire_interval = db.Column("expire_interval", db.Integer, index=False)
+    ctfd_url = db.Column("ctfd_url", db.String(64), index=False)
 
 class k8sChallengeTracker(db.Model):
     """

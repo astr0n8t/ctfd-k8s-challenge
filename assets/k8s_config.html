@@ -77,6 +77,19 @@
                     </label>
                     <input class="form-control" type="text" name="external_https_port" id="external-https-port-input" placeholder="External Web Port" value='{{ config.external_https_port }}'/>
                 </div>
+                <div class="form-group">
+                    <label for="expire-interval-input">
+                        Expire Interval
+                    </label>
+                    <input class="form-control" type="text" name="expire_interval" id="expire-interval-input" placeholder="Expire Interval" value='{{ config.expire_interval }}'/>
+                </div>
+                <div class="form-group">
+                    <label for="ctfd-url-input">
+                        CTFd URL
+                    </label>
+                    <input class="form-control" type="text" name="ctfd_url" id="ctfd-url-input" placeholder="CTFd URL" value='{{ config.ctfd_url }}'/>
+                </div>
+
 
                 {{ form.nonce() }}
                 <div class="col-md-13 text-center">
