@@ -67,18 +67,23 @@ function get_k8s_status(id) {
           $('#k8s_countdown').css('display', 'block')
           $('#k8s_start').css('display', 'none')
           $('#k8s_stop').css('display', 'block')
+          if (result.ExtendAvailable) {
+            $('#k8s_extend').css('display', 'block')
+          }
         } else {
           $('#k8s_connection').html('A challenge instance is already running.  You can only have one challenge instance running at a time.')
           $('#k8s_connection').css('display', 'block')
           $('#k8s_countdown').css('display', 'none')
           $('#k8s_start').css('display', 'none')
           $('#k8s_stop').css('display', 'none')
+          $('#k8s_extend').css('display', 'none')
         }
       } else {
         $('#k8s_start').css('display', 'block')
         $('#k8s_stop').css('display', 'none')
         $('#k8s_connection').css('display', 'none')
         $('#k8s_countdown').css('display', 'none')
+        $('#k8s_extend').css('display', 'none')
       }
   });
 };

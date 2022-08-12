@@ -12,6 +12,15 @@
     </span>
     </form>
     </div>
+    <div id="k8s_extend" style="display:none">
+    <form action="/api/v1/k8s/extend" method="post">
+    <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
+    <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
+    <span>
+        <button id="instance-extend-submit" class="btn btn-md btn-primary" type="submit" value="Submit">Extend Time</button>
+    </span>
+    </form>
+    </div>
     <div id="k8s_start" style="display:none">
     <form action="/api/v1/k8s/create" method="post">
     <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
