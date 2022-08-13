@@ -40,11 +40,11 @@ function get_k8s_status(id) {
   $.get("/api/v1/k8s/get?challenge_id="+id, function(result) {
     if (result.InstanceRunning) {
         if (result.ThisChallengeInstance) {
-          connectionURL = result.ConnectionURL
           connectionPort = result.ConnectionPort
+          connectionURL = result.ConnectionURL + ':' + String(connectionPort)
           expireTime = result.ExpireTime
 
-          $('#k8s_connection').html('Connection Information:<br/>' + connectionURL + ':' + connectionPort);
+          $('#k8s_connection_link').attr('href', connectionURL)
           $('#k8s_connection').css('display', 'block')
           var countDownDate = new Date(parseInt(result.ExpireTime) * 1000);
           var countDownIntervalID = setInterval(function() {
@@ -62,13 +62,14 @@ function get_k8s_status(id) {
                   $('#k8s_stop').css('display', 'none')
                   $('#k8s_connection').css('display', 'none')
                   $('#k8s_countdown').css('display', 'none')
+                  $('#k8s_extend').css('display', 'none')
               }
           }, 1000);
           $('#k8s_countdown').css('display', 'block')
           $('#k8s_start').css('display', 'none')
-          $('#k8s_stop').css('display', 'block')
+          $('#k8s_stop').css('display', 'inline-block')
           if (result.ExtendAvailable) {
-            $('#k8s_extend').css('display', 'block')
+            $('#k8s_extend').css('display', 'inline-block')
           }
         } else {
           $('#k8s_connection').html('A challenge instance is already running.  You can only have one challenge instance running at a time.')
