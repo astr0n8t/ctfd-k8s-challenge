@@ -89,7 +89,8 @@ def define_k8s_api(app):
         challenge = get_challenge_from_tracker(get_current_user().id)
 
         if challenge:
-            if challenge.challenge_id == int(request.args.get('challenge_id')):
+            challenge_id = int(request.args.get('challenge_id'))
+            if challenge.challenge_id == challenge_id:
                 config = get_config()
 
                 if challenge.chal_type == 'k8s-web':
@@ -100,7 +101,8 @@ def define_k8s_api(app):
                 information['InstanceRunning'] = True
                 information['ThisChallengeInstance'] = True
                 information['ExpireTime'] = int(challenge.revert_time)
-                if information['ExpireTime'] - unix_time(datetime.utcnow()) < config.expire_interval/2:
+                if information['ExpireTime'] - unix_time(datetime.utcnow()) < config.expire_interval/2 and (
+                   information['ExpireTime'] - unix_time(datetime.utcnow()) > 0):
                     information['ExtendAvailable'] = True
                 else:
                     information['ExtendAvailable'] = False

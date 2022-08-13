@@ -38,7 +38,8 @@ def get_expired_challenges():
 def extend_challenge_time(challenge):
     extended = False
     config = get_config()
-    if challenge.revert_time - unix_time(datetime.utcnow()) < config.expire_interval/2:
+    if challenge.revert_time - unix_time(datetime.utcnow()) < config.expire_interval/2 and (
+       challenge.revert_time - unix_time(datetime.utcnow()) > 0):
         challenge.revert_time = challenge.revert_time + floor(config.expire_interval/2)
         db.session.add(challenge)
         db.session.commit()
@@ -49,7 +50,9 @@ def get_challenge_tracker():
     return k8sChallengeTracker.query.all()
 
 def get_challenge_from_tracker(current_user_id):
-    return k8sChallengeTracker.query.filter_by(user_id=current_user_id).first()
+    expire_time = int(unix_time(datetime.utcnow()))
+    query_str = 'revert_time>' + str(expire_time)
+    return k8sChallengeTracker.query.filter_by(user_id=current_user_id).filter(text(query_str)).order_by(text('revert_time')).first()
 
 def insert_challenge_into_tracker(options, expire_time):
     challenge = k8sChallengeTracker()
