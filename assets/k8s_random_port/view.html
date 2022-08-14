@@ -2,10 +2,13 @@
 {% block description %}
 <div class='mb-3 text-center' id='k8s_container'>
     <div id="k8s_connection" style="display:none; padding: 10px">
-        Connect via TCP:<br>
-        <small>
-        URL: <span id="k8s_tcp_url"></span> Port: <span id="k8s_tcp_port"></span>
-        </small>
+        Connection Information
+        <div class="text-left" style="padding: 3px"><br>
+        <pre><code>
+<b>Host:</b> <span id="k8s_tcp_url" class="text-info"></span>
+<b>Port:</b> <span id="k8s_tcp_port" class="text-info"></span>
+        </code></pre>
+        </div>
     </div>
     <div id="k8s_countdown"><br></div>
     <div id="k8s_stop" style="display:none; padding: 10px">
