@@ -23,6 +23,13 @@ class k8sChallengeType(BaseChallenge):
 		:return:
 		"""
         data = request.form or request.get_json()
+
+        if data['repository'] != challenge.repository:
+            try:
+                data['image'] = build_from_repository(data['name'], data['repository'])
+            except Exception as e:
+                print("ERROR: ctfd-k8s-challenges: ", e)
+                return "Error re-building challenge.  Challenge not updated.", 500
         for attr, value in data.items():
             setattr(challenge, attr, value)
 
@@ -89,7 +96,11 @@ class k8sChallengeType(BaseChallenge):
 		:return:
 		"""
         data = request.form or request.get_json()
-        data['image'] = build_from_repository(data['name'], data['repository'])
+        try:
+            data['image'] = build_from_repository(data['name'], data['repository'])
+        except Exception as e:
+            print("ERROR: ctfd-k8s-challenges: ", e)
+            return "Error building challenge.  Challenge not created.", 500
         challenge = get_k8s_challenge_class(data)
         db.session.add(challenge)
         db.session.commit()
