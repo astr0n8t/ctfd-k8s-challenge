@@ -24,7 +24,7 @@ class k8sChallengeType(BaseChallenge):
 		"""
         data = request.form or request.get_json()
 
-        if data['repository'] != challenge.repository:
+        if 'repository' in data and data['repository'] != challenge.repository:
             try:
                 data['image'] = build_from_repository(data['name'], data['repository'])
             except Exception as e:
@@ -73,7 +73,6 @@ class k8sChallengeType(BaseChallenge):
             'id': challenge.id,
             'name': challenge.name,
             'value': challenge.value,
-            'image': challenge.image,
             'description': challenge.description,
             'category': challenge.category,
             'state': challenge.state,
