@@ -5,7 +5,7 @@ import urllib.parse
 from datetime import datetime
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.user import get_current_team, get_current_user
-from CTFd.utils.decorators import admins_only, authed_only
+from CTFd.utils.decorators import admins_only, authed_only, ratelimit
 from flask import request, Blueprint, render_template, redirect
 
 from .k8s_client import get_k8s_client, get_k8s_v1_client
@@ -17,6 +17,7 @@ def define_k8s_api(app):
 
     @k8s_api.route("/api/v1/k8s/create", methods=["POST"])
     @authed_only
+    @ratelimit(method="POST", limit=20, interval=300, key_prefix="rl")
     def create():
         try:
             user_current_challenge = get_challenge_from_tracker(get_current_user().id)
@@ -84,6 +85,7 @@ def define_k8s_api(app):
 
     @k8s_api.route("/api/v1/k8s/get", methods=["GET"])
     @authed_only
+    @ratelimit(method="GET", limit=300, interval=300, key_prefix="rl")
     def get():
         try:
             information = {'InstanceRunning': False, 'ThisChallengeInstance': False, 'ExpireTime': 0}
@@ -118,6 +120,7 @@ def define_k8s_api(app):
 
     @k8s_api.route("/api/v1/k8s/delete", methods=["POST"])
     @authed_only
+    @ratelimit(method="POST", limit=20, interval=300, key_prefix="rl")
     def delete():
         try:
             challenge = get_challenge_from_tracker(get_current_user().id)
@@ -153,6 +156,7 @@ def define_k8s_api(app):
         return "Error while deleting challenges", 500
 
     @k8s_api.route("/api/v1/k8s/clean", methods=["GET"])
+    @ratelimit(method="GET", limit=20, interval=300, key_prefix="rl")
     def clean():
         try:
             challenges = get_expired_challenges()
@@ -165,6 +169,7 @@ def define_k8s_api(app):
         return "An error occurred while cleaning.", 500
 
     @k8s_api.route("/api/v1/k8s/extend", methods=["POST"])
+    @ratelimit(method="POST", limit=20, interval=300, key_prefix="rl")
     def extend():
         try:
             challenge = get_challenge_from_tracker(get_current_user().id)
