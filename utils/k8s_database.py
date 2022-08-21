@@ -1,31 +1,26 @@
 from CTFd.models import db, Challenges
 from CTFd.utils.dates import unix_time
 from datetime import datetime
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 from math import floor
+
+from .k8s_config import read_config_file
 
 def init_db():
     existing_config = k8sConfig.query.filter_by(id=1).first()
     if not existing_config: 
-        print("ctfd-k8s-challenge: Creating new config with defaults.")
-        config = k8sConfig()
-        config.git_credential = ""
-        config.registry_password = ""
-        config.registry_namespace = "registry"
-        config.challenge_namespace = "challenges"
-        config.istio_namespace = "istio-system"
-        config.tcp_domain_name = "chal.luctf.dev"
-        config.https_domain_name = "web.luctf.dev"
-        config.certificate_issuer_name = "cloudflare-istio-issuer"
-        config.istio_ingress_name = "ingressgateway"
-        config.external_tcp_port = 443
-        config.external_https_port = 443
-        config.expire_interval = 3600
-        config.ctfd_url = 'http://ctfd-service.ctfd'
-        db.session.add(config)
-        db.session.commit()
-    else:
-        print("ctfd-k8s-challenge: Using existing config.")
+        print("ctfd-k8s-challenge: Creating blank config.")
+        existing_config = k8sConfig()
+    file_config = read_config_file()
+    if file_config:
+        print("ctfd-k8s-challenge: Reading config from file.")
+        columns = [column.name for column in inspect(k8sConfig).c]
+        for column in columns:
+            if column in file_config and getattr(existing_config, column) != file_config[column]:
+                setattr(existing_config, column, file_config[column])
+    db.session.add(existing_config)
+    db.session.commit()
+
 
 def get_config():
     return k8sConfig.query.filter_by(id=1).first()

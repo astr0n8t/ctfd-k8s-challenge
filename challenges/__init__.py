@@ -15,6 +15,9 @@ def init_chals(k8s_client):
 
     config = get_config()
 
+    if not config.challenge_namespace:
+        return False
+
     result = deploy_certificates(k8s_client, config)
     result = False if not result else deploy_web_gateway(k8s_client, config)
     result = False if not result else deploy_registry(k8s_client, config)
