@@ -1,4 +1,4 @@
-from CTFd.models import db, Challenges
+from CTFd.models import db, Challenges, Users
 from CTFd.utils.dates import unix_time
 from datetime import datetime
 from sqlalchemy import text, inspect
@@ -48,6 +48,23 @@ def get_challenge_from_tracker(current_user_id):
     expire_time = int(unix_time(datetime.utcnow()))
     query_str = 'revert_time>' + str(expire_time)
     return k8sChallengeTracker.query.filter_by(user_id=current_user_id).filter(text(query_str)).order_by(text('revert_time')).first()
+
+def get_all_challenges():
+    challenges = []
+
+    tracker = get_challenge_tracker()
+
+    for chal in tracker:
+        info = {
+            'id': chal.challenge_id,
+            'instance_id': chal.instance_id,
+            'user_id': chal.user_id,
+            'user': Users.query.filter_by(id=chal.user_id).first().name,
+            'challenge_name': Challenges.query.filter_by(id=chal.challenge_id).first().name
+        }
+        challenges.append(info)
+
+    return challenges
 
 def insert_challenge_into_tracker(options, expire_time):
     challenge = k8sChallengeTracker()

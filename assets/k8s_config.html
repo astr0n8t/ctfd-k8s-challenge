@@ -2,16 +2,22 @@
 {% block content %}
 <div class="jumbotron">
     <div class="container">
-        <h1>Kubernetes Config</h1>
-        <small>Reminder: Make sure to update config.yaml if being used for the changes to persist.
-            <br>
-            If Kubernetes resources have not been applied, please restart CTFd for it to deploy these resources.
-        </small>
+        <h1>Kubernetes Plugin</h1>
     </div>
 </div>
-<div class="container">
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-6 offset-md-3">
+        <div class="col-md-3">
+			<ul class="nav nav-pills flex-column">
+				<li class="nav-item">
+					<a class="nav-link rounded-0 active" href="#status" role="tab" data-toggle="tab">Status</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link rounded-0" href="#config" role="tab" data-toggle="tab">Config</a>
+				</li>
+			</ul>
+		</div>
+        <div class="col-md-9">
             {% for error in errors %}
             <div class="alert alert-danger alert-dismissable" role="alert">
                 <span class="sr-only">Error:</span>
@@ -19,91 +25,146 @@
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
             </div>
             {% endfor %}
-            
-            <form method="post" accept-charset="utf-8" autocomplete="off" role="form" name='k8s_config' class="form-horizontal" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="git-credential-input">
-                        Git Credential
-                    </label>
-                    <input class="form-control" type="password" name="git_credential" id="git-credential-input" placeholder="Git Credential" value=''/>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane config-section active" id="status">
+                    <h2>Active Challenge Instances</h2><br>
+                    <table id='challenge_instances' class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="cursor: pointer;" onclick="sortTable(0)">Instance ID</th>
+                                <th class="text-center" style="cursor: pointer;" onclick="sortTable(1)">User</th>
+                                <th class="text-center" style="cursor: pointer;" onclick="sortTable(2)">Challenge</th>
+                                <th class="text-center">Stop Instance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for challenge_instance in challenge_instances %}
+                            <tr id='tr_{{challenge_instance.instance_id}}' name='{{challenge_instance.instance_id}}'>
+                                <td class='text-center' value='{{challenge_instance.id}}'>{{challenge_instance.instance_id}}</td>
+                                <td class='text-center' value='{{challenge_instance.user | safe }}'>{{challenge_instance.user | safe }}</td>
+                                <td class='text-center' value='{{challenge_instance.challenge_name | safe }}'>{{challenge_instance.challenge_name}}</td>
+                                <td class='text-center'>
+                                    <form action="/api/v1/k8s/delete" method="post">
+                                    <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge_instance.id }}">
+                                    <input id="user-id" class="user-id" name="user_id" type="hidden" value="{{ challenge_instance.user_id }}">
+                                    <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
+                                    <span>
+                                        <button id="instance-delete-submit" class="btn btn-md btn-primary" type="submit" value="Submit"><i class="fas fa-stop-circle"></i></i> Stop Instance</button>
+                                    </span>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <br>
+                    <div style="padding-top: 5%; padding-bottom: 5%">
+                        <h2>Emergency</h2><br>
+                        <form action="/api/v1/k8s/delete_all" method="post">
+                        <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
+                        <span>
+                            <button class="btn btn-md btn-primary" type="submit" value="Submit"><i class="fas fa-skull"></i> Delete All Instances</button><small style="padding-left: 5px">    Warning: This will delete all active challenge instances for all users.</small>
+                        </span>
+                        </form>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="registry-namespace-input">
-                        Registry Namespace
-                    </label>
-                    <input class="form-control" type="text" name="registry_namespace" id="registry-namespace-input" placeholder="Registry Namespace" value='{{ config.registry_namespace }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="challenge-namespace-input">
-                        challenge-namespace-input Namespace
-                    </label>
-                    <input class="form-control" type="text" name="challenge_namespace" id="challenge-namespace-input" placeholder="Challenge Namespace" value='{{ config.challenge_namespace }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="istio-namespace-input">
-                        Istio Namespace
-                    </label>
-                    <input class="form-control" type="text" name="istio_namespace" id="istio-namespace-input" placeholder="Istio Namespace" value='{{ config.istio_namespace }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="tcp-domain-name-input">
-                        TCP Domain Name
-                    </label>
-                    <input class="form-control" type="text" name="tcp_domain_name" id="tcp-domain-name-input" placeholder="TCP Domain Name" value='{{ config.tcp_domain_name }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="https-domain-name-input">
-                        Web Domain Name
-                    </label>
-                    <input class="form-control" type="text" name="https_domain_name" id="https-domain-name-input" placeholder="Web Domain Name" value='{{ config.https_domain_name }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="certificate-issuer-name-input">
-                        TCP Domain Name
-                    </label>
-                    <input class="form-control" type="text" name="certificate_issuer_name" id="certificate-issuer-name-input" placeholder="Certificate Issuer Name" value='{{ config.certificate_issuer_name }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="istio-ingress-name-input">
-                        Istio Ingress Name
-                    </label>
-                    <input class="form-control" type="text" name="istio_ingress_name" id="istio-ingress-name-input" placeholder="Istio Ingress Name" value='{{ config.istio_ingress_name }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="external-tcp-port-input">
-                        External TCP Port
-                    </label>
-                    <input class="form-control" type="text" name="external_tcp_port" id="external-tcp-port-input" placeholder="External TCP Port" value='{{ config.external_tcp_port }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="external-https-port-input">
-                        External Web Port
-                    </label>
-                    <input class="form-control" type="text" name="external_https_port" id="external-https-port-input" placeholder="External Web Port" value='{{ config.external_https_port }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="expire-interval-input">
-                        Expire Interval
-                    </label>
-                    <input class="form-control" type="text" name="expire_interval" id="expire-interval-input" placeholder="Expire Interval" value='{{ config.expire_interval }}'/>
-                </div>
-                <div class="form-group">
-                    <label for="ctfd-url-input">
-                        CTFd URL
-                    </label>
-                    <input class="form-control" type="text" name="ctfd_url" id="ctfd-url-input" placeholder="CTFd URL" value='{{ config.ctfd_url }}'/>
-                </div>
+                <div role="tabpanel" class="tab-pane config-section" id="config">
+                    <div class="jumbotron">
+                        <div class="container">
+                            <h1>Config</h1>
+                            <small>Reminder: Make sure to update config.yaml if being used for the changes to persist.
+                                <br>
+                                If Kubernetes resources have not been applied, please restart CTFd for it to deploy these resources.
+                            </small>
+                        </div>
+                    </div>
+                    <form method="post" accept-charset="utf-8" autocomplete="off" role="form" name='k8s_config' class="form-horizontal" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="git-credential-input">
+                                Git Credential
+                            </label>
+                            <input class="form-control" type="password" name="git_credential" id="git-credential-input" placeholder="Git Credential" value=''/>
+                        </div>
+                        <div class="form-group">
+                            <label for="registry-namespace-input">
+                                Registry Namespace
+                            </label>
+                            <input class="form-control" type="text" name="registry_namespace" id="registry-namespace-input" placeholder="Registry Namespace" value='{{ config.registry_namespace }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="challenge-namespace-input">
+                                challenge-namespace-input Namespace
+                            </label>
+                            <input class="form-control" type="text" name="challenge_namespace" id="challenge-namespace-input" placeholder="Challenge Namespace" value='{{ config.challenge_namespace }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="istio-namespace-input">
+                                Istio Namespace
+                            </label>
+                            <input class="form-control" type="text" name="istio_namespace" id="istio-namespace-input" placeholder="Istio Namespace" value='{{ config.istio_namespace }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="tcp-domain-name-input">
+                                TCP Domain Name
+                            </label>
+                            <input class="form-control" type="text" name="tcp_domain_name" id="tcp-domain-name-input" placeholder="TCP Domain Name" value='{{ config.tcp_domain_name }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="https-domain-name-input">
+                                Web Domain Name
+                            </label>
+                            <input class="form-control" type="text" name="https_domain_name" id="https-domain-name-input" placeholder="Web Domain Name" value='{{ config.https_domain_name }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="certificate-issuer-name-input">
+                                TCP Domain Name
+                            </label>
+                            <input class="form-control" type="text" name="certificate_issuer_name" id="certificate-issuer-name-input" placeholder="Certificate Issuer Name" value='{{ config.certificate_issuer_name }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="istio-ingress-name-input">
+                                Istio Ingress Name
+                            </label>
+                            <input class="form-control" type="text" name="istio_ingress_name" id="istio-ingress-name-input" placeholder="Istio Ingress Name" value='{{ config.istio_ingress_name }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="external-tcp-port-input">
+                                External TCP Port
+                            </label>
+                            <input class="form-control" type="text" name="external_tcp_port" id="external-tcp-port-input" placeholder="External TCP Port" value='{{ config.external_tcp_port }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="external-https-port-input">
+                                External Web Port
+                            </label>
+                            <input class="form-control" type="text" name="external_https_port" id="external-https-port-input" placeholder="External Web Port" value='{{ config.external_https_port }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="expire-interval-input">
+                                Expire Interval
+                            </label>
+                            <input class="form-control" type="text" name="expire_interval" id="expire-interval-input" placeholder="Expire Interval" value='{{ config.expire_interval }}'/>
+                        </div>
+                        <div class="form-group">
+                            <label for="ctfd-url-input">
+                                CTFd URL
+                            </label>
+                            <input class="form-control" type="text" name="ctfd_url" id="ctfd-url-input" placeholder="CTFd URL" value='{{ config.ctfd_url }}'/>
+                        </div>
 
 
-                {{ form.nonce() }}
-                <div class="col-md-13 text-center">
-                    <button type="submit" tabindex="0" class="btn btn-md btn-primary btn-outlined">
-                        Submit
-                    </button>
+                        {{ form.nonce() }}
+                        <div class="col-md-13 text-center">
+                            <button type="submit" tabindex="0" class="btn btn-md btn-primary btn-outlined">
+                                Submit
+                            </button>
+                        </div>
+                        <input type="hidden" name="id" value="1">
+                    </form>
                 </div>
+            </div>
         </div>
-        <input type="hidden" name="id" value="1">
-        </form>
+
     </div>
 </div>
 {% endblock content %}

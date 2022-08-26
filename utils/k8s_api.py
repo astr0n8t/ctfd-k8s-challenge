@@ -4,7 +4,7 @@ import random
 import urllib.parse
 from datetime import datetime
 from CTFd.utils.config import is_teams_mode
-from CTFd.utils.user import get_current_team, get_current_user
+from CTFd.utils.user import get_current_team, get_current_user, is_admin
 from CTFd.utils.decorators import admins_only, authed_only, ratelimit
 from flask import request, Blueprint, render_template, redirect
 
@@ -123,7 +123,12 @@ def define_k8s_api(app):
     @ratelimit(method="POST", limit=20, interval=300, key_prefix="rl")
     def delete():
         try:
-            challenge = get_challenge_from_tracker(get_current_user().id)
+            if is_admin() and 'user_id' in request.form:
+                user_id = request.form['user_id']
+            else:
+                user_id = get_current_user().id
+
+            challenge = get_challenge_from_tracker(user_id)
 
             if challenge and challenge.challenge_id == int(request.form['challenge_id']):
                 if delete_challenge_instance(challenge):
