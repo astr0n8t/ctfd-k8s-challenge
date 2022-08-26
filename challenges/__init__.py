@@ -52,7 +52,6 @@ def deploy_registry(k8s_client, config):
     if not config.registry_password:
         config.registry_password = str(hashlib.md5(bytes(str(uuid.uuid4()), 'utf-8')).hexdigest())
         db.session.commit()
-    print("Registry password: ", config.registry_password)
 
     registry_hash = encrypt_password('ctfd', config.registry_password)
 
