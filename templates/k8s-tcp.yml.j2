@@ -21,6 +21,10 @@ spec:
         - name: chal-port
           containerPort: {{ challenge_port }}
           protocol: TCP
+        resources:
+          limits:
+            memory: "50Mi"
+            cpu: "25m"
       imagePullSecrets:
         - name: {{ deployment_name }}-pull
 ---
