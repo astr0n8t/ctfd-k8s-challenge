@@ -1,3 +1,8 @@
+"""
+k8s_delete_from_yaml
+
+Pulled from GitHub PR to allow deletion from yaml using the Kubernetes API.
+"""
 # Copyright 2018 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,8 +63,8 @@ def delete_from_yaml(k8s_client, yaml_file=None, yaml_objects=None, verbose=Fals
     if yaml_objects:
         yml_document_all = yaml_objects
     elif yaml_file:
-        with open(path.abspath(yaml_file)) as f:
-            yml_document_all = yaml.safe_load_all(f)
+        with open(path.abspath(yaml_file), encoding='utf-8') as y_file:
+            yml_document_all = yaml.safe_load_all(y_file)
     else:
         raise ValueError(
             'One of `yaml_file` or `yaml_objects` arguments must be provided')
@@ -68,8 +73,8 @@ def delete_from_yaml(k8s_client, yaml_file=None, yaml_objects=None, verbose=Fals
             delete_from_dict(k8s_client, yml_document, verbose,
                                 namespace=namespace, **kwargs)
         except FailToDeleteError as failure:
-            for e in failure.api_exceptions:
-                if e.status != 404:
+            for general_exception in failure.api_exceptions:
+                if general_exception.status != 404:
                     print(failure)
 
 
@@ -121,6 +126,9 @@ def delete_from_dict(k8s_client, yml_document, verbose,
 
 def delete_from_yaml_single_item(k8s_client,
                                  yml_document, verbose=False, **kwargs):
+    """
+    Deletes a single object from yaml.
+    """
     # get group and version from apiVersion
     group, _, version = yml_document["apiVersion"].partition("/")
     if version == "":
@@ -131,17 +139,17 @@ def delete_from_yaml_single_item(k8s_client,
     # convert group name from DNS subdomain format to
     # python class name convention
     group = "".join(word.capitalize() for word in group.split('.'))
-    func = "{0}{1}Api".format(group, version.capitalize())
+    func = "{0}{1}Api".format(group, version.capitalize()) # pylint: disable=consider-using-f-string
     k8s_api = getattr(client, func)(k8s_client)
     kind = yml_document["kind"]
     kind = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', kind)
     kind = re.sub('([a-z0-9])([A-Z])', r'\1_\2', kind).lower()
-    if hasattr(k8s_api, "create_namespaced_{0}".format(kind)):
+    if hasattr(k8s_api, "create_namespaced_{0}".format(kind)): # pylint: disable=consider-using-f-string
         if "namespace" in yml_document["metadata"]:
             namespace = yml_document["metadata"]["namespace"]
             kwargs["namespace"] = namespace
         name = yml_document["metadata"]["name"]
-        res = getattr(k8s_api, "delete_namespaced_{}".format(kind))(
+        res = getattr(k8s_api, "delete_namespaced_{}".format(kind))( # pylint: disable=consider-using-f-string
             name=name,
             body=client.V1DeleteOptions(propagation_policy="Background",
                                         grace_period_seconds=5), **kwargs)
@@ -149,14 +157,14 @@ def delete_from_yaml_single_item(k8s_client,
         # get name of object to delete
         name = yml_document["metadata"]["name"]
         kwargs.pop('namespace', None)
-        res = getattr(k8s_api, "delete_{}".format(kind))(
+        res = getattr(k8s_api, "delete_{}".format(kind))( # pylint: disable=consider-using-f-string
             name=name,
             body=client.V1DeleteOptions(propagation_policy="Background",
                                         grace_period_seconds=5), **kwargs)
     if verbose:
-        msg = "{0} deleted.".format(kind)
+        msg = "{0} deleted.".format(kind) # pylint: disable=consider-using-f-string
         if hasattr(res, 'status'):
-            msg += " status='{0}'".format(str(res.status))
+            msg += " status='{0}'".format(str(res.status)) # pylint: disable=consider-using-f-string
         print(msg)
 
 
@@ -166,12 +174,12 @@ class FailToDeleteError(Exception):
     handling a yaml file during deletion of the resource.
     """
 
-    def __init__(self, api_exceptions):
+    def __init__(self, api_exceptions): # pylint: disable=super-init-not-called
         self.api_exceptions = api_exceptions
 
     def __str__(self):
         msg = ""
         for api_exception in self.api_exceptions:
-            msg += "Error from server ({0}):{1}".format(
+            msg += "Error from server ({0}):{1}".format( # pylint: disable=consider-using-f-string
                 api_exception.reason, api_exception.body)
         return msg

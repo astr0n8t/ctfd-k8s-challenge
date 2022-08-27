@@ -1,8 +1,16 @@
-from .k8s_challenge import k8sChallengeType, k8sChallenge
+"""
+k8s_web
 
-from flask import request, Blueprint, jsonify, abort, render_template, url_for, redirect, session
+Defines the challenge type for web challenges.
+"""
 
-class k8sWebChallengeType(k8sChallengeType):
+from flask import Blueprint # pylint: disable=import-error
+from .k8s_challenge import K8sChallengeType
+
+class K8sWebChallengeType(K8sChallengeType):
+    """
+    The challenge type for web challenges.
+    """
     id = "k8s-web"
     name = "k8s-web"
     templates = {
@@ -16,5 +24,5 @@ class k8sWebChallengeType(k8sChallengeType):
         'view': '/plugins/ctfd-k8s-challenge/assets/k8s_web/view.js',
     }
     route = '/plugins/ctfd-k8s-challenge/assets/k8s_web'
-    blueprint = Blueprint('ctfd-k8s-challenge', __name__, template_folder='templates', static_folder='assets')
-
+    blueprint = Blueprint('ctfd-k8s-challenge', __name__,
+                            template_folder='templates', static_folder='assets')

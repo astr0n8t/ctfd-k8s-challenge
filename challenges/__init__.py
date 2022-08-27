@@ -1,9 +1,14 @@
+"""
+challenges
+
+This module implements the actual challenge types of the plugins.
+"""
+import re
 import uuid
 import hashlib
 import bcrypt
-import re
-from CTFd.models import db, Challenges
-from CTFd.plugins.challenges import BaseChallenge, CHALLENGE_CLASSES, get_chal_class
+from CTFd.models import db, Challenges                                               # pylint: disable=import-error
+from CTFd.plugins.challenges import BaseChallenge, CHALLENGE_CLASSES, get_chal_class # pylint: disable=import-error
 
 from .k8s_tcp import *
 from .k8s_web import *
@@ -12,7 +17,10 @@ from .k8s_admin import define_k8s_admin
 from ..utils import *
 
 def init_chals(k8s_client):
-
+    """
+    Initializes resources for the challenge types.
+    Also registers the actual challenge classes.
+    """
     config = get_config()
 
     if not config.challenge_namespace:
@@ -24,25 +32,40 @@ def init_chals(k8s_client):
     result = False if not result else deploy_cleanup_cronjob(k8s_client, config)
 
     if result:
-        CHALLENGE_CLASSES['k8s-tcp'] = k8sTcpChallengeType
-        CHALLENGE_CLASSES['k8s-web'] = k8sWebChallengeType
-        CHALLENGE_CLASSES['k8s-random-port'] = k8sRandomPortChallengeType
+        CHALLENGE_CLASSES['k8s-tcp'] = K8sTcpChallengeType
+        CHALLENGE_CLASSES['k8s-web'] = K8sWebChallengeType
+        CHALLENGE_CLASSES['k8s-random-port'] = K8sRandomPortChallengeType
 
     return result
 
 def deinit_chals(k8s_client):
+    """
+    Removes challenge resources.
+
+    Currently unused.
+    """
+
     config = get_config()
-    
+
     result = destroy_certificates(k8s_client, config)
-    result = False if not result else destroy_cleanup_cronjob(k8s_client, config)   
-    result = False if not result else destroy_web_gateway(k8s_client, config)    
+    result = False if not result else destroy_cleanup_cronjob(k8s_client, config)
+    result = False if not result else destroy_web_gateway(k8s_client, config)
     result = False if not result else destroy_registry(k8s_client, config)
 
     return result
 
 def deploy_registry(k8s_client, config):
+    """
+    Deploys the internal challenge registry in Kubernetes.
+    """
+
     def encrypt_password(username, password):
-        bcrypted = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
+        """
+        Quick function to return a htpasswd formatted hash of password.
+        """
+
+        bcrypted = bcrypt.hashpw(password.encode("utf-8"),
+                                bcrypt.gensalt(rounds=12)).decode("utf-8")
         bcrypted = re.sub(r"\$2[^a]\$", "$2y$", bcrypted)
         return f"{username}:{bcrypted}"
 
@@ -68,6 +91,10 @@ def deploy_registry(k8s_client, config):
     return result
 
 def deploy_certificates(k8s_client, config):
+    """
+    Deploys the certificates for the challenge endpoints.
+    """
+
     result = False
     template = get_template('certificates')
     options = { 'tcp_cert_name': config.tcp_domain_name,
@@ -84,6 +111,10 @@ def deploy_certificates(k8s_client, config):
     return result
 
 def deploy_web_gateway(k8s_client, config):
+    """
+    Deploys the Istio Gateway for the web challenges.
+    """
+
     result = False
     template = get_template('web-gateway')
     options = { 'istio_namespace': config.istio_namespace,
@@ -99,6 +130,10 @@ def deploy_web_gateway(k8s_client, config):
     return result
 
 def deploy_cleanup_cronjob(k8s_client, config):
+    """
+    Deploys the cronjob which calls the /api/v1/k8s/clean endpoint every minute.
+    """
+
     result = False
     template = get_template('clean')
     options = {'ctfd_url': config.ctfd_url,
@@ -111,6 +146,10 @@ def deploy_cleanup_cronjob(k8s_client, config):
     return result
 
 def destroy_registry(k8s_client, config):
+    """
+    Destroys the registry deployment from Kubernetes.
+    """
+
     result = False
     template = get_template('registry')
     options = {'registry_namespace': config.registry_namespace}
@@ -121,7 +160,11 @@ def destroy_registry(k8s_client, config):
         print("ctfd-k8s-challenge: Error: destroying k8s internal challenge registry failed!")
     return result
 
-def destroy_certificates(k8s_client):
+def destroy_certificates(k8s_client, config):
+    """
+    Destroys the certificates from Kubernetes.
+    """
+
     result = False
     template = get_template('certificates')
     options = { 'tcp_cert_name': config.tcp_domain_name,
@@ -137,7 +180,11 @@ def destroy_certificates(k8s_client):
         print("ctfd-k8s-challenge: Error: destroying challenge certificates failed!")
     return result
 
-def destroy_web_gateway(k8s_client):
+def destroy_web_gateway(k8s_client, config):
+    """
+    Destroys the Istio Gateway from Kubernetes.
+    """
+
     result = False
     template = get_template('web-gateway')
     options = { 'istio_namespace': config.istio_namespace,
@@ -151,8 +198,12 @@ def destroy_web_gateway(k8s_client):
     else:
         print("ctfd-k8s-challenge: Error: destroying web challenge gateway failed!")
     return result
-    
+
 def destroy_cleanup_cronjob(k8s_client, config):
+    """
+    Destroys the cleanup cronjob.
+    """
+
     result = False
     template = get_template('clean')
     options = {'ctfd_url': config.ctfd_url,

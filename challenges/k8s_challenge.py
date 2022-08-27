@@ -1,11 +1,20 @@
-from CTFd.models import db, Challenges, Teams, Users, Solves, Fails, Flags, Files, Hints, Tags, ChallengeFiles
-from CTFd.plugins.challenges import BaseChallenge, CHALLENGE_CLASSES, get_chal_class
-from CTFd.utils.user import get_ip, get_current_user
-from flask import request, Blueprint, jsonify, abort, render_template, url_for, redirect, session
+"""
+k8s_challenge
 
-from ..utils import build_from_repository, delete_challenge_instance, get_challenge_from_tracker, get_challenge_tracker
+This file implements the challenge class.
+"""
+from CTFd.models import db, Challenges, Solves, Fails, Flags, Hints, Tags, ChallengeFiles # pylint: disable=import-error
+from CTFd.plugins.challenges import BaseChallenge                                         # pylint: disable=import-error
+from CTFd.utils.user import get_ip                                                        # pylint: disable=import-error
+from CTFd.utils.uploads import delete_file                                                # pylint: disable=import-error
 
-class k8sChallengeType(BaseChallenge):
+from ..utils import (build_from_repository, delete_challenge_instance,
+                     get_challenge_from_tracker, get_challenge_tracker)
+
+class K8sChallengeType(BaseChallenge):
+    """
+    The base class for all three k8s challenge types.
+    """
     id = ""
     name = ""
     templates = {}
@@ -16,7 +25,8 @@ class k8sChallengeType(BaseChallenge):
     @staticmethod
     def update(challenge, request):
         """
-		This method is used to update the information associated with a challenge. This should be kept strictly to the
+		This method is used to update the information associated with a challenge.
+        This should be kept strictly to the
 		Challenges table and any child tables.
 		:param challenge:
 		:param request:
@@ -24,11 +34,12 @@ class k8sChallengeType(BaseChallenge):
 		"""
         data = request.form or request.get_json()
 
-        if data['force-rebuild'] or ('repository' in data and data['repository'] != challenge.repository):
+        if (('force-rebuild' in data and data['force-rebuild']) or
+             ('repository' in data and data['repository'] != challenge.repository)):
             try:
                 data['image'] = build_from_repository(data['name'], data['repository'])
-            except Exception as e:
-                print("ERROR: ctfd-k8s-challenges: ", e)
+            except Exception as general_exception: # pylint: disable=broad-except
+                print("ERROR: ctfd-k8s-challenges: ", general_exception)
                 return "Error re-building challenge.  Challenge not updated.", 500
         for attr, value in data.items():
             setattr(challenge, attr, value)
@@ -52,12 +63,12 @@ class k8sChallengeType(BaseChallenge):
         Solves.query.filter_by(challenge_id=challenge.id).delete()
         Flags.query.filter_by(challenge_id=challenge.id).delete()
         files = ChallengeFiles.query.filter_by(challenge_id=challenge.id).all()
-        for f in files:
-            delete_file(f.id)
+        for uploaded_file in files:
+            delete_file(uploaded_file.id)
         ChallengeFiles.query.filter_by(challenge_id=challenge.id).delete()
         Tags.query.filter_by(challenge_id=challenge.id).delete()
         Hints.query.filter_by(challenge_id=challenge.id).delete()
-        k8sChallenge.query.filter_by(id=challenge.id).delete()
+        K8sChallenge.query.filter_by(id=challenge.id).delete()
         Challenges.query.filter_by(id=challenge.id).delete()
         db.session.commit()
 
@@ -68,7 +79,7 @@ class k8sChallengeType(BaseChallenge):
 		:param challenge:
 		:return: Challenge object, data dictionary to be returned to the user
 		"""
-        challenge = k8sChallenge.query.filter_by(id=challenge.id).first()
+        challenge = K8sChallenge.query.filter_by(id=challenge.id).first()
         data = {
             'id': challenge.id,
             'name': challenge.name,
@@ -79,10 +90,10 @@ class k8sChallengeType(BaseChallenge):
             'max_attempts': challenge.max_attempts,
             'type': challenge.type,
             'type_data': {
-                'id': k8sChallengeType.id,
-                'name': k8sChallengeType.name,
-                'templates': k8sChallengeType.templates,
-                'scripts': k8sChallengeType.scripts,
+                'id': K8sChallengeType.id,
+                'name': K8sChallengeType.name,
+                'templates': K8sChallengeType.templates,
+                'scripts': K8sChallengeType.scripts,
             }
         }
         return data
@@ -97,8 +108,8 @@ class k8sChallengeType(BaseChallenge):
         data = request.form or request.get_json()
         try:
             data['image'] = build_from_repository(data['name'], data['repository'])
-        except Exception as e:
-            print("ERROR: ctfd-k8s-challenges: ", e)
+        except Exception as general_exception: # pylint: disable=broad-except
+            print("ERROR: ctfd-k8s-challenges: ", general_exception)
             return "Error building challenge.  Challenge not created.", 500
         challenge = get_k8s_challenge_class(data)
         db.session.add(challenge)
@@ -107,6 +118,11 @@ class k8sChallengeType(BaseChallenge):
 
     @staticmethod
     def solve(user, team, challenge, request):
+        """
+		This method is used to check if the user has solved the challenge.
+		:param request:
+		:return:
+		"""
         delete_challenge_instance(get_challenge_from_tracker(user.id))
         data = request.form or request.get_json()
         submission = data["submission"].strip()
@@ -120,29 +136,44 @@ class k8sChallengeType(BaseChallenge):
         db.session.add(solve)
         db.session.commit()
 
-class k8sChallenge(Challenges):
+class K8sChallenge(Challenges):
+    """
+    Basic model for the database table for the challenge types.
+    """
     __mapper_args__ = {'polymorphic_identity': 'k8s-challenge'}
     id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), primary_key=True)
-    image = db.Column(db.String(128), index=False)  
+    image = db.Column(db.String(128), index=False)
     repository = db.Column(db.String(128), index=False)
     port = db.Column(db.Integer, index=False)
 
-class k8sTcpChallenge(k8sChallenge):
+class K8sTcpChallenge(K8sChallenge):
+    """
+    Wraps the polymorphic identity for tcp challenges.
+    """
     __mapper_args__ = {'polymorphic_identity': 'k8s-tcp'}
 
-class k8sWebChallenge(k8sChallenge):
+class K8sWebChallenge(K8sChallenge):
+    """
+    Wraps the polymorphic identity for web challenges.
+    """
     __mapper_args__ = {'polymorphic_identity': 'k8s-web'}
 
-class k8sRandomPortChallenge(k8sChallenge):
+class K8sRandomPortChallenge(K8sChallenge):
+    """
+    Wraps the polymorphic identity for random port challenges.
+    """
     __mapper_args__ = {'polymorphic_identity': 'k8s-random-port'}
 
 
 def get_k8s_challenge_class(data):
+    """
+    Small wrapper function to return the correct class type.
+    """
     instance = None
     if data['type'] == 'k8s-tcp':
-        instance = k8sTcpChallenge(**data)
+        instance = K8sTcpChallenge(**data)
     elif data['type'] == 'k8s-web':
-        instance = k8sWebChallenge(**data)
+        instance = K8sWebChallenge(**data)
     elif data['type'] == 'k8s-random-port':
-        instance = k8sRandomPortChallenge(**data)
+        instance = K8sRandomPortChallenge(**data)
     return instance

@@ -1,20 +1,32 @@
-from CTFd.models import db, Challenges, Users
-from CTFd.utils.dates import unix_time
-from datetime import datetime
-from sqlalchemy import text, inspect
+"""
+k8s_database
+
+Creates wrapper functions around most database operations.
+"""
+
 from math import floor
+from datetime import datetime
+
+from CTFd.models import db, Challenges, Users # pylint: disable=import-error
+from CTFd.utils.dates import unix_time        # pylint: disable=import-error
+from sqlalchemy import text, inspect          # pylint: disable=import-error
+
 
 from .k8s_config import read_config_file
 
 def init_db():
-    existing_config = k8sConfig.query.filter_by(id=1).first()
-    if not existing_config: 
+    """
+    Initializes the database by trying to read the configuration file.
+    """
+
+    existing_config = K8sConfig.query.filter_by(id=1).first()
+    if not existing_config:
         print("ctfd-k8s-challenge: Creating blank config.")
-        existing_config = k8sConfig()
+        existing_config = K8sConfig()
     file_config = read_config_file()
     if file_config:
         print("ctfd-k8s-challenge: Reading config from file.")
-        columns = [column.name for column in inspect(k8sConfig).c]
+        columns = [column.name for column in inspect(K8sConfig).c]
         for column in columns:
             if column in file_config and getattr(existing_config, column) != file_config[column]:
                 setattr(existing_config, column, file_config[column])
@@ -23,14 +35,23 @@ def init_db():
 
 
 def get_config():
-    return k8sConfig.query.filter_by(id=1).first()
+    """
+    Returns the config dictionary.
+    """
+    return K8sConfig.query.filter_by(id=1).first()
 
 def get_expired_challenges():
+    """
+    Returns a list of expired challenge objects.
+    """
     expire_time = int(unix_time(datetime.utcnow()))
     query_str = 'revert_time<' + str(expire_time)
-    return k8sChallengeTracker.query.filter(text(query_str)).order_by(text('revert_time')).all()
+    return K8sChallengeTracker.query.filter(text(query_str)).order_by(text('revert_time')).all()
 
 def extend_challenge_time(challenge):
+    """
+    Extends the challenge time by half the time if the challenge is eligible for extension.
+    """
     extended = False
     config = get_config()
     if challenge.revert_time - unix_time(datetime.utcnow()) < config.expire_interval/2 and (
@@ -42,14 +63,24 @@ def extend_challenge_time(challenge):
     return extended
 
 def get_challenge_tracker():
-    return k8sChallengeTracker.query.all()
+    """
+    Returns a list of all challenges in the tracker.
+    """
+    return K8sChallengeTracker.query.all()
 
 def get_challenge_from_tracker(current_user_id):
+    """
+    Returns a user's current challenge from the tracker.
+    """
     expire_time = int(unix_time(datetime.utcnow()))
     query_str = 'revert_time>' + str(expire_time)
-    return k8sChallengeTracker.query.filter_by(user_id=current_user_id).filter(text(query_str)).order_by(text('revert_time')).first()
+    return K8sChallengeTracker.query.filter_by(
+        user_id=current_user_id).filter(text(query_str)).order_by(text('revert_time')).first()
 
 def get_all_challenges():
+    """
+    Returns a list of all challenges with proper names and users for the admin page.
+    """
     challenges = []
 
     tracker = get_challenge_tracker()
@@ -67,7 +98,10 @@ def get_all_challenges():
     return challenges
 
 def insert_challenge_into_tracker(options, expire_time):
-    challenge = k8sChallengeTracker()
+    """
+    Inserts a new challenge into the tracker.
+    """
+    challenge = K8sChallengeTracker()
     challenge.chal_type = options['challenge_type']
     challenge.team_id = options['team']
     challenge.user_id = options['user']
@@ -80,23 +114,32 @@ def insert_challenge_into_tracker(options, expire_time):
     db.session.commit()
 
 def remove_challenge_from_tracker(instance_id):
-    k8sChallengeTracker.query.filter_by(id=instance_id).delete()
+    """
+    Removes a challenge from the tracker by the id.
+    """
+    K8sChallengeTracker.query.filter_by(id=instance_id).delete()
     db.session.commit()
     return
 
 def get_challenge_by_id(challenge_id):
+    """
+    Returns a specific challenge by its id.
+    """
     return Challenges.query.filter_by(id=challenge_id).first()
 
 def check_if_port_in_use(port):
+    """
+    Checks if a specific TCP port is being used.
+    """
     available = False
-    query = k8sChallengeTracker.query.filter_by(port=port).first()
+    query = K8sChallengeTracker.query.filter_by(port=port).first()
 
     if not query:
         available = True
 
     return available
 
-class k8sConfig(db.Model):
+class K8sConfig(db.Model):
     """
 	k8s Config Model. This model stores the config for the plugin.
 	"""
@@ -115,7 +158,7 @@ class k8sConfig(db.Model):
     expire_interval = db.Column("expire_interval", db.Integer, index=False)
     ctfd_url = db.Column("ctfd_url", db.String(64), index=False)
 
-class k8sChallengeTracker(db.Model):
+class K8sChallengeTracker(db.Model):
     """
 	K8s Container Tracker. This model stores the users/teams active containers.
 	"""
