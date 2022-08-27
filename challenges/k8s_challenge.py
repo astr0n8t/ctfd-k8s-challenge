@@ -11,7 +11,7 @@ from CTFd.utils.uploads import delete_file                                      
 from ..utils import (build_from_repository, delete_challenge_instance,
                      get_challenge_from_tracker, get_challenge_tracker)
 
-class K8sChallengeType(BaseChallenge):
+class K8sChallengeType(BaseChallenge): #pylint: disable=too-few-public-methods
     """
     The base class for all three k8s challenge types.
     """
@@ -56,7 +56,7 @@ class K8sChallengeType(BaseChallenge):
 		:return:
 		"""
         challenge_tracker = get_challenge_tracker()
-        for challenge in challenge_tracker:
+        for challenge in challenge_tracker: #pylint: disable=redefined-argument-from-local
             delete_challenge_instance(challenge)
 
         Fails.query.filter_by(challenge_id=challenge.id).delete()
@@ -136,7 +136,7 @@ class K8sChallengeType(BaseChallenge):
         db.session.add(solve)
         db.session.commit()
 
-class K8sChallenge(Challenges):
+class K8sChallenge(Challenges): #pylint: disable=too-few-public-methods
     """
     Basic model for the database table for the challenge types.
     """
@@ -146,19 +146,19 @@ class K8sChallenge(Challenges):
     repository = db.Column(db.String(128), index=False)
     port = db.Column(db.Integer, index=False)
 
-class K8sTcpChallenge(K8sChallenge):
+class K8sTcpChallenge(K8sChallenge): #pylint: disable=too-few-public-methods
     """
     Wraps the polymorphic identity for tcp challenges.
     """
     __mapper_args__ = {'polymorphic_identity': 'k8s-tcp'}
 
-class K8sWebChallenge(K8sChallenge):
+class K8sWebChallenge(K8sChallenge): #pylint: disable=too-few-public-methods
     """
     Wraps the polymorphic identity for web challenges.
     """
     __mapper_args__ = {'polymorphic_identity': 'k8s-web'}
 
-class K8sRandomPortChallenge(K8sChallenge):
+class K8sRandomPortChallenge(K8sChallenge): #pylint: disable=too-few-public-methods
     """
     Wraps the polymorphic identity for random port challenges.
     """

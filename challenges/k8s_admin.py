@@ -16,7 +16,7 @@ from wtforms import (
 )
 from ..utils import get_config, get_all_challenges
 
-class K8sConfigForm(BaseForm):
+class K8sConfigForm(BaseForm): #pylint: disable=too-few-public-methods
     """
     This class defines the config form for the plugin.
     """
@@ -81,7 +81,7 @@ def define_k8s_admin(app):
 
     @k8s_admin.route("/admin/kubernetes", methods=["GET", "POST"])
     @admins_only
-    def admin():
+    def admin(): #pylint: disable=too-many-branches
         config = get_config()
         form = K8sConfigForm()
         challenge_instances = []

@@ -12,7 +12,7 @@ def get_custom_api(api_client) ->  k8s.client.CustomObjectsApi:
     return k8s.client.CustomObjectsApi(api_client)
 
 
-def patch_custom_object_from_yaml(api_client, yaml_object: dict,
+def patch_custom_object_from_yaml(api_client, yaml_object: dict, #pylint: disable=too-many-arguments
                                   group: str, version: str, namespace: str,
                                   name: str, plural: str):
     """
@@ -26,7 +26,7 @@ def patch_custom_object_from_yaml(api_client, yaml_object: dict,
                                                            yaml_object)
 
 
-def create_custom_object_from_yaml(api_client, yaml_object: dict,
+def create_custom_object_from_yaml(api_client, yaml_object: dict, #pylint: disable=too-many-arguments
                                    group: str, version: str, namespace: str,
                                 plural: str):
     """
@@ -39,7 +39,7 @@ def create_custom_object_from_yaml(api_client, yaml_object: dict,
                                                             yaml_object)
 
 
-def apply_custom_object_from_yaml(api_client, yaml_object: dict,
+def apply_custom_object_from_yaml(api_client, yaml_object: dict, #pylint: disable=too-many-arguments
                                   group: str = None,
                                   version: str = None,
                                   namespace: str = None,
@@ -70,7 +70,7 @@ def apply_custom_object_from_yaml(api_client, yaml_object: dict,
         else:
             print("ERROR: ctfd-k8s-challenges: ", general_exception)
 
-def delete_custom_object_from_yaml(api_client, yaml_object: dict,
+def delete_custom_object_from_yaml(api_client, yaml_object: dict, #pylint: disable=too-many-arguments
                                   group: str = None,
                                   version: str = None,
                                   namespace: str = None,
