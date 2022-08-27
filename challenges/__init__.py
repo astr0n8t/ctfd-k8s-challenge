@@ -8,7 +8,7 @@ from CTFd.plugins.challenges import BaseChallenge, CHALLENGE_CLASSES, get_chal_c
 from .k8s_tcp import *
 from .k8s_web import *
 from .k8s_random_port import *
-from .k8s_config import define_k8s_admin
+from .k8s_admin import define_k8s_admin
 from ..utils import *
 
 def init_chals(k8s_client):
