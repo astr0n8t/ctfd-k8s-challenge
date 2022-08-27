@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: challenge-cleanup
+  namespace: {{ challenge_namespace }}
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 5
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          containers:
+          - name: curl
+            image: curlimages/curl:latest
+            imagePullPolicy: IfNotPresent
+            command:
+            - /usr/bin/curl 
+            - {{ ctfd_url }}/api/v1/k8s/clean
+          restartPolicy: Never

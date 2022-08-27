@@ -1,0 +1,57 @@
+{% extends "challenge.html" %}
+{% block description %}
+<div class='mb-3 text-center' id='k8s_container'>
+    <div id="k8s_connection" style="display:none; padding: 10px">
+        Connection Information
+        <div class="text-left" style="padding: 3px"><br>
+        <pre><code>
+<b>Host:</b> <span id="k8s_tcp_url" class="text-info"></span>
+<b>Port:</b> <span id="k8s_tcp_port" class="text-info"></span>
+        </code></pre>
+        </div>
+    </div>
+    <div id="k8s_countdown"><br></div>
+    <div id="k8s_stop" style="display:none; padding: 10px">
+    <form action="/api/v1/k8s/delete" method="post">
+    <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
+    <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
+    <span>
+        <button id="instance-delete-submit" class="btn btn-md btn-primary" type="submit" value="Submit"><i class="fas fa-stop-circle"></i></i> Stop Instance</button>
+    </span>
+    </form>
+    </div>
+    <div id="k8s_extend" style="display:none; padding: 10px">
+    <form action="/api/v1/k8s/extend" method="post">
+    <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
+    <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
+    <span>
+        <button id="instance-extend-submit" class="btn btn-md btn-primary" type="submit" value="Submit"><i class="fas fa-stopwatch"></i> Extend Time</button>
+    </span>
+    </form>
+    </div>
+    <div id="k8s_start" style="display:none; padding: 10px">
+    <form action="/api/v1/k8s/create" method="post">
+    <input id="challenge-id" class="challenge-id" name="challenge_id" type="hidden" value="{{ challenge.id }}">
+    <input type="hidden" name="nonce" value="{{ session.get('nonce') }}"/>
+    <span>
+        <button id="instance-create-submit" class="btn btn-md btn-primary" type="submit" value="Submit"><i class="fas fa-play-circle"></i> Start Instance</button>
+    </span>
+    </form>
+    </div>
+</div>
+<script defer>
+    (function() {
+        get_k8s_status('{{ challenge.id }}');
+    })();
+</script>
+{{ challenge.html }}
+{% endblock %}
+{% block input %}
+<input id="challenge-id" class="challenge-id" type="hidden" value="{{ challenge.id }}">
+<input id="challenge-input" class="challenge-input" type="text" name="answer" placeholder="Flag" />
+{% endblock %}
+{% block submit %}
+<button id="challenge-submit" class="challenge-submit" type="submit">
+    Submit
+</button>
+{% endblock %}

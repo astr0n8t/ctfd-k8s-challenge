@@ -1,0 +1,171 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ctfd-k8s-serviceaccount
+  namespace: ctfd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ctfd-k8s-challenge-role
+  namespace: challenges
+rules:
+- apiGroups:
+  - 'apps'
+  resources:
+  - 'deployments'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+- apiGroups:
+  - ''
+  resources:
+  - 'secrets'
+  - 'services'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+- apiGroups:
+  - 'batch'
+  resources:
+  - 'cronjobs'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+- apiGroups:
+  - 'networking.istio.io'
+  resources:
+  - 'destinationrules'
+  - 'virtualservices'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ctfd-k8s-registry-role
+  namespace: registry
+rules:
+- apiGroups:
+  - 'apps'
+  resources:
+  - 'deployments'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+- apiGroups:
+  - ''
+  resources:
+  - 'configmaps'
+  - 'persistentvolumeclaims'
+  - 'secrets'
+  - 'services'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+- apiGroups:
+  - 'batch'
+  resources:
+  - 'jobs'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+- apiGroups:
+  - 'networking.istio.io'
+  resources:
+  - 'destinationrules'
+  - 'virtualservices'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ctfd-k8s-istio-system-role
+  namespace: istio-system
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - 'services'
+  verbs:
+  - 'get'
+  - 'patch'
+- apiGroups:
+  - 'networking.istio.io'
+  resources:
+  - 'gateways'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+- apiGroups:
+  - 'cert-manager.io'
+  resources:
+  - 'certificates'
+  verbs:
+  - 'get'
+  - 'create'
+  - 'patch'
+  - 'delete'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: reg-ctfd-challenge-role-binding
+  namespace: registry
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ctfd-k8s-registry-role
+subjects:
+- namespace: ctfd
+  kind: ServiceAccount
+  name: ctfd-k8s-serviceaccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: chal-ctfd-challenge-role-binding
+  namespace: challenges
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ctfd-k8s-challenge-role
+subjects:
+- namespace: ctfd
+  kind: ServiceAccount
+  name: ctfd-k8s-serviceaccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: chal-ctfd-challenge-role-binding
+  namespace: istio-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ctfd-k8s-istio-system-role
+subjects:
+- namespace: ctfd
+  kind: ServiceAccount
+  name: ctfd-k8s-serviceaccount

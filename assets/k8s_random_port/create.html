@@ -1,0 +1,41 @@
+{% extends "admin/challenges/create.html" %}
+
+{% block header %}
+<div class="alert alert-secondary" role="alert">
+	Kubernetes Random Port challenges allow a user to create a containerized instance of a challenge available over a random TCP port.
+</div>
+{% endblock %}
+
+
+{% block category %}
+<div class="form-group">
+    <label>
+        Category:<br>
+        <small class="form-text text-muted">
+            The category of your challenge
+        </small>
+    </label>
+    <input type="text" class="form-control" name="category" placeholder="Enter challenge category">
+</div>
+<div class="form-group">
+	<label for="repo">Repository:<br>
+		<small class="form-text text-muted">
+			This is the source git repository for the challenge.
+			The repository must contain a Dockerfile that describes how to build the container image.
+		</small>
+	</label>
+	<input type="text" class="form-control" name="repository" placeholder="Enter Repository, i.e. github.com/user/repo " required>
+	<div class="form-group">
+		<label for="port">Port:<br>
+			<small class="form-text text-muted">
+				This is the port that the container image listens on.
+			</small>
+		</label>
+		<input type="text" class="form-control" name="port" placeholder="Enter Port, i.e. 80 " required>
+
+</div>
+{% endblock %}
+
+{% block type %}
+<input type="hidden" value="k8s-random-port" name="type" id="chaltype">
+{% endblock %}

@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: builder-{{ challenge_name }}
+  namespace: {{ registry_namespace }}
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+        - "--context=git://{{ challenge_repo }}"
+        - "--destination=challenge-registry-service.{{ registry_namespace }}/{{ challenge_name }}:latest"
+        - "--insecure"
+        env:
+        - name: GIT_TOKEN
+          value: {{ git_credential }}
+        volumeMounts:
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: registry-auth-map
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+      restartPolicy: Never
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: registry-auth-map
+  namespace: {{ registry_namespace }}
+data:
+  .dockerconfigjson: {{ registry_data }}

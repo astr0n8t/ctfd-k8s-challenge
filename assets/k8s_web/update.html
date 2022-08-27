@@ -1,0 +1,38 @@
+{% extends "admin/challenges/update.html" %}
+
+{% block category %}
+<div class="form-group">
+    <label>
+        Category:<br>
+        <small class="form-text text-muted">
+            The category of your challenge
+        </small>
+    </label>
+    <input type="text" class="form-control" name="category" placeholder="Enter challenge category"  value="{{ challenge.category }}">
+</div>
+<div class="form-group">
+	<label for="repo">Repository:<br>
+		<small class="form-text text-muted">
+			This is the source git repository for the challenge.
+			The repository must contain a Dockerfile that describes how to build the container image.
+		</small>
+	</label>
+	<input type="text" class="form-control" name="repository" placeholder="Enter Repository, i.e. github.com/user/repo "  value="{{ challenge.repository }}">
+</div>
+<div class="form-group">
+	<label for="port">Port:<br>
+		<small class="form-text text-muted">
+			This is the port that the container image listens on.
+		</small>
+	</label>
+	<input type="text" class="form-control" name="port" placeholder="Enter Port, i.e. 80 "  value="{{ challenge.port }}">
+</div>
+<div class="form-group">
+	<label for="force-rebuild">Force Rebuild<br>
+		<small class="form-text text-muted">
+			Force a rebuild of the challenge container image.
+		</small>
+	</label>
+	<input type="checkbox" class="form-check-input" name="force-rebuild" value="1">
+</div>
+{% endblock %}
