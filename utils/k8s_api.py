@@ -23,7 +23,7 @@ from .k8s_database import (get_config, get_challenge_from_tracker, get_challenge
                            get_challenge_tracker, get_expired_challenges,
                            extend_challenge_time, remove_challenge_from_tracker)
 
-def define_k8s_api(app):
+def define_k8s_api(app): #pylint: disable=too-many-statements
     """
     Implements all of the methods for the API as well as registering it with CTFd.
     """

@@ -35,5 +35,3 @@ def load(app):
             "ctfd-k8s-challenge: Error: ctfd-k8s-challenge unable to initialize.  \
                 It will be disabled."
             )
-
-    return

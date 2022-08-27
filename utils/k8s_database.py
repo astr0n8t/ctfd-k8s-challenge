@@ -119,7 +119,6 @@ def remove_challenge_from_tracker(instance_id):
     """
     K8sChallengeTracker.query.filter_by(id=instance_id).delete()
     db.session.commit()
-    return
 
 def get_challenge_by_id(challenge_id):
     """
@@ -139,7 +138,7 @@ def check_if_port_in_use(port):
 
     return available
 
-class K8sConfig(db.Model):
+class K8sConfig(db.Model): #pylint: disable=too-few-public-methods
     """
 	k8s Config Model. This model stores the config for the plugin.
 	"""
@@ -158,7 +157,7 @@ class K8sConfig(db.Model):
     expire_interval = db.Column("expire_interval", db.Integer, index=False)
     ctfd_url = db.Column("ctfd_url", db.String(64), index=False)
 
-class K8sChallengeTracker(db.Model):
+class K8sChallengeTracker(db.Model): #pylint: disable=too-few-public-methods,too-many-instance-attributes
     """
 	K8s Container Tracker. This model stores the users/teams active containers.
 	"""
