@@ -30,13 +30,30 @@ spec:
         - name: registry-htpasswd
           mountPath: "/auth/"
           readOnly: true
+        - name: registry-vol
+          mountPath: "/var/lib/registry/"
       volumes:
+      - name: registry-vol
+        persistentVolumeClaim:
+          claimName: registry-pvc
       - name: registry-htpasswd
         configMap:
           name: registry-htpasswd-map
           items:
           - key: "htpasswd"
             path: "htpasswd"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: registry-pvc
+  namespace: registry
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: ConfigMap
