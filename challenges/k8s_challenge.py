@@ -24,7 +24,7 @@ class k8sChallengeType(BaseChallenge):
 		"""
         data = request.form or request.get_json()
 
-        if 'repository' in data and data['repository'] != challenge.repository:
+        if data['force-rebuild'] or ('repository' in data and data['repository'] != challenge.repository):
             try:
                 data['image'] = build_from_repository(data['name'], data['repository'])
             except Exception as e:
