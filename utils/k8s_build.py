@@ -38,6 +38,7 @@ def build_from_repository(challenge_name, repository):
                 'registry_namespace': config.registry_namespace,
                 'https_domain_name': config.https_domain_name,
                 'git_credential': config.git_credential,
+                'git_user': config.git_user,
                 'registry_data': registry_data}
 
     print("Building challenge...")

@@ -18,8 +18,16 @@ spec:
         - "--destination=challenge-registry-service.{{ registry_namespace }}/{{ challenge_name }}:latest"
         - "--insecure"
         env:
-        - name: GIT_TOKEN
-          value: {{ git_credential }}
+        - name: GIT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: registry-auth-map
+              key: git-password
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: registry-auth-map
+              key: git-username
         volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
@@ -39,3 +47,5 @@ metadata:
   namespace: {{ registry_namespace }}
 data:
   .dockerconfigjson: {{ registry_data }}
+  git-username: {{ git_user | base64 }}
+  git-password: {{ git_credential | base64 }}
