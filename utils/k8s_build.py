@@ -32,8 +32,8 @@ def build_from_repository(challenge_name, repository):
                                             registry_auth + '"}' + '}' +
                                             '}').encode('ascii')).decode('ascii')
 
-    git_user = base64.b64encode(str(config.git_user))
-    git_password = base64.b64encode(str(config.git_credential))
+    git_user = base64.b64encode(str(config.git_user).encode('ascii')).decode('ascii')
+    git_password = base64.b64encode(str(config.git_credential).encode('ascii')).decode('ascii')
 
     template = get_template('build')
     options = { 'challenge_name': challenge_name,
