@@ -47,5 +47,5 @@ metadata:
   namespace: {{ registry_namespace }}
 data:
   .dockerconfigjson: {{ registry_data }}
-  git-username: {{ git_user | base64 }}
-  git-password: {{ git_credential | base64 }}
+  git-username: {{ git_user }}
+  git-password: {{ git_credential }}
