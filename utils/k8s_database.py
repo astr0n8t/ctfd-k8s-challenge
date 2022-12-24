@@ -143,7 +143,7 @@ class K8sConfig(db.Model): #pylint: disable=too-few-public-methods
 	k8s Config Model. This model stores the config for the plugin.
 	"""
     id = db.Column(db.Integer, primary_key=True)
-    git_credential = db.Column("git_credential", db.String(64), index=False)
+    git_credential = db.Column("git_credential", db.String(256), index=False)
     registry_password = db.Column("registry_password", db.String(64), index=False)
     registry_namespace = db.Column("registry_namespace", db.String(64), index=False)
     challenge_namespace = db.Column("challenge_namespace", db.String(64), index=False)
