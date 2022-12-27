@@ -5,6 +5,8 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22
     strategy:
       matrix:
         python-version: ["3.9"]
