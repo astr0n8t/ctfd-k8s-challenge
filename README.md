@@ -16,4 +16,3 @@ This challenge type is for HTTP services.  These need to be different from the n
 This challenge type is still for TCP services.  These are for services that cannot be served behind TLS/SNI properly.  The workflow is that CTFd will generate a unique port for each instance in combination with a unique domain name, except that the domain name will not matter in this case.
 
 If UDP/<insert obscure proto here> is needed, the idea is that someone can simply do an OpenVPN port or SSH on the random port and then have players pivot through those.
-
