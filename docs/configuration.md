@@ -29,7 +29,7 @@ The special keyword `env` can be used on some keys to have the plugin pull from 
 Each option is listed here with a description:
 
 | Key | Description | Default | Environment Variable |
-|-----------------|-------------------------------------------------|-----------------------|
+|-----------------|-------------------------------------------------|-----------------------|--------------|
 | git_username | The username for git to use when pulling challenge repositories that contain Dockerfiles | env | K8S_CHALLENGES_GIT_USER |
 | git_credential | The password (or token) for git to use when pulling challenge repositories that contain Dockerfiles | env | K8S_CHALLENGES_GIT_CREDENTIAL | 
 | registry_password | The password for the Docker registry to use (used both for internal docker registry and as image pull secrets) | env | K8S_CHALLENGES_REGISTRY_PASSWORD |
