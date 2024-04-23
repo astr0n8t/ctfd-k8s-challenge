@@ -1,9 +1,10 @@
 # ctfd-k8s-challenge
+
 A Kubernetes challenge type plugin for CTFd
 
 This plugin provides three new challenge types for CTFd: k8s-tcp, k8s-web, and k8s-random-port.
 
-Each type allows for an on-demand, per-user (or team!) challenge instance that is deployed in Kubernetes and available immediately (usually) externally.
+Each type allows for an on-demand, per user (or team) challenge instances that are deployed in Kubernetes and available externally immediately (*usually*).
 
 ## Motivation
 
@@ -45,11 +46,15 @@ This challenge type is for HTTP services.  These need to be different from the n
 
 This challenge type is still for TCP services.  These are for services that cannot be served behind TLS/SNI properly.  The workflow is that CTFd will generate a unique port for each instance in combination with a unique domain name, except that the domain name will not matter in this case.
 
-If UDP/<insert obscure proto here> is needed, the idea is that someone can simply do an OpenVPN port or SSH on the random port and then have players pivot through those.
+If UDP/\<insert obscure proto here\> is needed, the idea is that someone can simply do an OpenVPN port or SSH on the random port and then have players pivot through those.
 
 ## Installation
 
 See [installation](docs/installation.md)
+
+## Configuration 
+
+See [configuration](docs/configuration.md)
 
 ## Issues?
 
