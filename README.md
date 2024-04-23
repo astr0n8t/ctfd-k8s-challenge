@@ -56,6 +56,10 @@ See [installation](docs/installation.md)
 
 See [configuration](docs/configuration.md)
 
+## Architecture Overview
+
+See [architecture](docs/architecture.md)
+
 ## Issues?
 
 Open an issue, I don't actively work on this project (aside from writing this documentation 2 years after the fact), but I'm happy to try to assist if you hit an issue.
