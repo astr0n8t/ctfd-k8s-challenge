@@ -36,7 +36,7 @@ You can replace any of the templates in the templates folder with your own.  Don
 
 ### k8s-tcp
 
-This challenge type is for typical connections which would happen over something like netcat or a raw TCP socket.  These challenges will be secured by TLS and routed by Istio using SNI.  These should work for most binexp, RE, or crypto challenges.
+This challenge type is for typical connections which would happen over something like netcat or a raw TCP socket.  These challenges will be secured by TLS and routed by Istio using SNI.  These should work for most binexp, RE, or crypto challenges.  You will need to provide players with a tool like [snicat](https://github.com/CTFd/snicat) to access these; some tools like `pwntools` also support this; you can also do it with openssl's s_client.
 
 ### k8s-web
 
@@ -44,7 +44,7 @@ This challenge type is for HTTP services.  These need to be different from the n
 
 ### k8s-random-port
 
-This challenge type is still for TCP services.  These are for services that cannot be served behind TLS/SNI properly.  The workflow is that CTFd will generate a unique port for each instance in combination with a unique domain name, except that the domain name will not matter in this case.
+This challenge type is still for TCP services.  These are for services that cannot be served behind TLS/SNI properly.  The workflow is that CTFd will generate a unique port between 40000 and 50000 for each instance in combination with a unique domain name, except that the domain name will not matter in this case since we cannot use SNI.
 
 If UDP/\<insert obscure proto here\> is needed, the idea is that someone can simply do an OpenVPN port or SSH on the random port and then have players pivot through those.
 
@@ -55,6 +55,12 @@ See [installation](docs/installation.md)
 ## Configuration 
 
 See [configuration](docs/configuration.md)
+
+## Templates 
+
+This plugin deploys templated YAML files for various things such as challenge instances.  You can customize these as you need to and probably should as the defaults have container limits set on challenge instances that may not work with your challenges.  I would also recommend looking into also using something like [Google's nsjail](https://github.com/google/nsjail) for security as well as following Google's recommended best practices for their [kctf project](https://google.github.io/kctf/).
+
+See [templates](docs/templates.md)
 
 ## Architecture Overview
 
