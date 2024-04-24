@@ -96,6 +96,8 @@ Used to deploy a cronjob that curls the clean endpoint every minute.  It is need
 
 Used for on demand challenge instances of type random port.  Deployed everytime a user requests an instance.
 
+#### Templated Variables
+
 | Name | Value |
 |--------------|----------------------------|
 | deployment_name | The name of the deployment, a unique uuid appended to the 'chal-' prefix |
@@ -110,6 +112,8 @@ Used for on demand challenge instances of type random port.  Deployed everytime 
 ### k8s-tcp
 
 Used for on demand challenge instances of type TCP/TLS.  Deployed everytime a user requests an instance.
+
+#### Templated Variables
 
 | Name | Value |
 |--------------|----------------------------|
@@ -128,6 +132,8 @@ Used for on demand challenge instances of type TCP/TLS.  Deployed everytime a us
 
 Used for on demand challenge instances of type TCP/TLS.  Deployed everytime a user requests an instance.
 
+#### Templated Variables
+
 | Name | Value |
 |--------------|----------------------------|
 | deployment_name | The name of the deployment, a unique uuid appended to the 'chal-' prefix |
@@ -142,6 +148,8 @@ Used for on demand challenge instances of type TCP/TLS.  Deployed everytime a us
 
 Used to deploy an internal container registry to store challenge container images.
 
+#### Templated Variables
+
 | Name | Value |
 |--------------|----------------------------|
 | registry_namespace | The namespace the registry is deployed into |
@@ -152,6 +160,8 @@ Used to deploy an internal container registry to store challenge container image
 ### web-gateway
 
 Used to deploy the Istio gateway for https challenges and registry.  A weird quirk of how Istio handles web traffic requires us to handle web challenges like this.
+
+#### Templated Variables
 
 | Name | Value |
 |--------------|----------------------------|
