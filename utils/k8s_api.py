@@ -220,6 +220,7 @@ def define_k8s_api(app): #pylint: disable=too-many-statements
         return "An error occurred while cleaning.", 500
 
     @k8s_api.route("/api/v1/k8s/extend", methods=["POST"])
+    @authed_only
     @ratelimit(method="POST", limit=20, interval=300, key_prefix="rl")
     def extend():
         """
